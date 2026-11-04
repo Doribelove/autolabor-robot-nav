@@ -20,7 +20,8 @@ from sensor_msgs.msg import LaserScan, PointCloud2
 from std_msgs.msg import Header
 
 
-MOUNT = (-0.011, -0.02329, 0.64412)  # lidar origin in base_link
+MOUNT = (0.0, 0.0, 0.65)  # user-measured lidar origin in original base_link
+BODY_IN_BASE = (0.011, 0.02329, 0.60588)  # unchanged internal IMU calibration
 
 
 class ObstacleScanTest(unittest.TestCase):
@@ -95,20 +96,26 @@ class ObstacleScanTest(unittest.TestCase):
 
     def cloud_points(self):
         self.wait_for(lambda: 'cloud' in self.latest)
-        return list(pc2.read_points(self.latest['cloud'], field_names=('x', 'y', 'z')))
+        self.assertEqual(self.latest['cloud'].header.frame_id, 'body')
+        return [tuple(v + offset for v, offset in zip(point, BODY_IN_BASE))
+                for point in pc2.read_points(self.latest['cloud'], field_names=('x', 'y', 'z'))]
 
     def test_01_range_height_and_physical_footprint(self):
         points = [self.point(3, 0, .4), self.point(2, 1.5, 1.3), self.point(-2, -1, .6),
                   self.point(6, -4.5, .5),  # distinct ray at the window's far edge
                   self.point(0, 10, .5), self.point(0, -30, .5),  # far clutter
                   self.point(1, 1, .1), self.point(2, -2, 2.),  # ground/above window
-                  self.point(.5, .2, .5), self.point(-.79, -.39, 1.),  # vehicle
+                  self.point(.5, .2, .5), self.point(-.51, -.39, 1.),
+                  self.point(1.1, .2, .5),  # new front cleaner must be removed
+                  self.point(-.65, -.3, .5),  # behind the new physical rear
+                  self.point(1.28, .15, .5),  # padding is NOT a self-filter mask
                   CustomPoint(), CustomPoint(x=float('nan'), y=1, z=0),
                   self.point(2, -1, .6, tag=0x20)]
         self.configure(points)
         values = sorted(self.scan_ranges())
-        self.assertEqual(len(values), 4, values)
-        for actual, expected in zip(values, sorted([3., 2.5, math.sqrt(5), 7.5])):
+        self.assertEqual(len(values), 6, values)
+        for actual, expected in zip(values, sorted([3., 2.5, math.sqrt(5), 7.5,
+                                                    math.hypot(.65,.3), math.hypot(1.28,.15)])):
             self.assertAlmostEqual(actual, expected, places=4)
         self.assertAlmostEqual(self.latest['scan'].range_max, 8.1, places=5)
         self.assertEqual(self.latest['scan'].header.frame_id, 'base_link')
@@ -222,6 +229,18 @@ class ObstacleScanTest(unittest.TestCase):
             with self.subTest(surface_points=len(points)):
                 self.configure(points)
                 self.assertGreaterEqual(len(self.scan_ranges()), 30)
+
+    def test_11_measured_ground_height_keeps_real_obstacle(self):
+        # Physical road is -0.25 m in base_link. A 0.60 m high obstacle has
+        # its top at +0.35 m and must survive the existing height window.
+        road = [self.point(ix*.3, iy*.3, -.25)
+                for ix in range(-26,27,2) for iy in range(-26,27,2)
+                if ix*ix+iy*iy >= 25]
+        self.configure(road)
+        self.assertEqual(self.scan_ranges(), [])
+        self.configure(road + [self.point(3., 0., .35)])
+        self.assertEqual(len(self.scan_ranges()), 1)
+        self.assertAlmostEqual(self.scan_ranges()[0], 3., places=4)
 
 
 if __name__ == '__main__':

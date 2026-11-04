@@ -8,6 +8,19 @@ from gps_module.long_range import EARTH_RADIUS_M, rotate_xy, validate_latitude_l
 from .visual_servo import same_target_observations
 
 
+FOD_GOAL_RADIUS_M = 0.3
+
+
+def point_matches_recovery_goal(point, goal_xy):
+    """Compare the FOD position with the original final GPS goal, in metres.
+
+    This applies to the object, not the separate 0.8 m crossing endpoint.
+    The tiny epsilon only absorbs floating-point error at the 0.3 m edge.
+    """
+    return (all(math.isfinite(v) for v in (*point[:2], *goal_xy))
+            and math.dist(point[:2], goal_xy) <= FOD_GOAL_RADIUS_M + 1e-8)
+
+
 def local_to_gps(x, y, origin_lat, origin_lon, yaw_offset=0.0):
     """Exact inverse of the existing GPS goal manager's local conversion."""
     origin_lat, origin_lon = validate_latitude_longitude(origin_lat, origin_lon)

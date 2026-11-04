@@ -1,14 +1,36 @@
 #!/usr/bin/env python3
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+import yaml
 
 from autolabor_fod_vision.detector import Detection, InferenceResult
 from autolabor_fod_vision.detection_roi import DetectionRoi, mark_recovery_region
 
 
 class GroundRoiTest(unittest.TestCase):
+    def test_production_lower_half_excludes_top_and_restores_depth_coordinates(self):
+        root = Path(__file__).resolve().parents[4]
+        config = yaml.safe_load((root / 'config/fod_zed_ground_roi.yaml').read_text())
+        roi = DetectionRoi(config['roi_top_fraction'], config['roi_bottom_fraction'])
+        image = np.zeros((720, 1280, 3), dtype=np.uint8)
+        image[:360] = 81
+        image[360:] = 197
+        boxes = [Detection(0, 'Metal', .8, 10, y, 40, y+20, 25, y+20)
+                 for y in (0, 160, 330)]
+        seen = []
+        model = SimpleNamespace(predict=lambda frame: (
+            seen.append(frame.copy()) or InferenceResult(boxes, 10.)))
+        result = roi.predict(model, image)
+        np.testing.assert_array_equal(seen[0], image[360:])
+        self.assertEqual([d.ymin for d in result.detections], [360, 520, 690])
+        self.assertEqual([d.anchor_v for d in result.detections], [380, 540, 710])
+        shown = roi.mark_preview(image.copy())
+        np.testing.assert_array_equal(shown[600, 100], image[600, 100])
+        self.assertTrue(np.all(shown[100, 100] < image[100, 100]))
+
     def test_excluded_rows_never_reach_model_and_coordinates_return_to_full_image(self):
         image = np.zeros((720, 1280, 3), dtype=np.uint8)
         image[:180] = 255

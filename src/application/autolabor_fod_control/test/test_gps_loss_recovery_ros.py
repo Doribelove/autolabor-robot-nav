@@ -21,9 +21,9 @@ from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
 from geometry_msgs.msg import Point32, PoseStamped, TransformStamped, Twist
 from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal, MoveBaseResult
 from nav_msgs.msg import Odometry
-from sensor_msgs.msg import CameraInfo, NavSatFix, RegionOfInterest
+from sensor_msgs.msg import CameraInfo, CompressedImage, LaserScan, NavSatFix, RegionOfInterest
 from std_msgs.msg import Bool, Float64, String
-from std_srvs.srv import SetBool
+from std_srvs.srv import SetBool, Trigger
 from autolabor_fod_control.gps_recovery import local_to_gps
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -36,6 +36,7 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
     def setUp(self):
         self.ready = False
         self.case = rospy.get_param('~case')
+        self.verification_case = rospy.get_param('~verification_case', 'pass')
         self.mode, self.visual, self.route = {}, {}, {}
         self.mode_states, self.route_states, self.goals, self.fallbacks = [], [], [], []
         self.trace = []
@@ -44,7 +45,7 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
         self.approach_x = None
         self.current_goal = None
         self.nearest_x = 4.0
-        self.nearest_y = float(rospy.get_param("~fod_offset_y", 1.0)) if self.case == "fuzzy_offset" else 0.0
+        self.nearest_y = float(rospy.get_param("~fod_offset_y", .2)) if self.case == "fuzzy_offset" else 0.0
         self.approach_time = None
         self.min_fod_distance = float("inf")
         self.sweep_first_x = None
@@ -53,9 +54,17 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
         self.started = time.monotonic()
         self.sweeper = DeviceServer(port=int(rospy.get_param('~sweep_port')))
         super().setUp()
-        self.x = -5.2
+        self.original_goal_x = 4.2  # FOD at x=4 is within the required 0.3 m.
+        self.x = self.original_goal_x - 10.2
         self.tf_pub = tf2_ros.TransformBroadcaster()
         self.gps_pose_pub = rospy.Publisher('/gps/odom', Odometry, queue_size=10)
+        if self.verification_case:
+            import cv2
+            import numpy as np
+            pixels = np.tile(np.arange(256, dtype=np.uint8), (144, 1))
+            self.verification_jpeg = cv2.imencode('.jpg', pixels)[1].tobytes()
+            self.verification_image_pub = rospy.Publisher('/fod_camera/image_raw/compressed', CompressedImage, queue_size=1)
+            self.verification_scan_pub = rospy.Publisher('/scan', LaserScan, queue_size=1)
         self.navigation_pub = rospy.Publisher('/cmd_vel_navigation', Twist, queue_size=1)
         self.goal_fix_pub = rospy.Publisher('/gps/goal_fix', NavSatFix, queue_size=1)
         self.current_goal_pub = rospy.Publisher('/move_base/current_goal', PoseStamped, queue_size=1)
@@ -159,6 +168,17 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
         camera.K=[523.,0.,635.,0.,523.,366.,0.,0.,1.]
         camera.P=[523.,0.,635.,0.,0.,523.,366.,0.,0.,0.,1.,0.]
         self.camera_pub.publish(camera)
+        if self.verification_case:
+            scan=LaserScan();scan.header.stamp=stamp;scan.header.frame_id='base_link'
+            scan.angle_min=-math.pi;scan.angle_max=math.pi;scan.angle_increment=math.pi/180
+            scan.range_min=.2;scan.range_max=8.1;scan.ranges=[math.inf]*361
+            phase=self.mode.get('verification',{}).get('phase')
+            if self.verification_case=='blocked' and phase in ('PREPARING','REVERSING'):
+                scan.ranges[0]=1.0
+            self.verification_scan_pub.publish(scan)
+            if not (self.verification_case=='camera_loss' and phase=='OBSERVING'):
+                im=CompressedImage();im.header.stamp=stamp;im.format='jpeg';im.data=self.verification_jpeg
+                self.verification_image_pub.publish(im)
         self._detections(stamp,x,y,yaw)
         self.wheel_pub.publish(Float64(data=math.atan(omega*WHEELBASE/v) if abs(v)>1e-6 else 0.))
         self.chassis_pub.publish(ChassisStatusInfo())
@@ -175,7 +195,7 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
                 navigation.linear.x=1.6
                 navigation.angular.z=max(-.35,min(.35,error))*1.6
         self.navigation_pub.publish(navigation)
-        if self.sweeper.state and self.sweep_first_x is None:
+        if self.sweeper.hydraulic and self.sweep_first_x is None:
             self.sweep_first_x=x
         if self.mode.get('state') == 'GPS_FOD_RECOVERY' and not self.late_cancel_sent:
             old=[i for i in self.cancel_ids if i]
@@ -189,6 +209,14 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
         msg=FodDetectionArray();msg.header.stamp=stamp;msg.header.frame_id='zed2_left_camera_optical_frame'
         msg.image_width,msg.image_height=1280,720
         msg.model_name,msg.model_sha256,msg.model_task='simulated-approved-model',MODEL_SHA,'detect'
+        if self.verification_case and self.mode.get('state')=='FOD_VERIFY':
+            if self.verification_case=='residual':
+                d=FodDetection();d.class_id=0;d.class_name='Metal';d.confidence=.9;d.track_id=100
+                d.bbox=RegionOfInterest(x_offset=600,y_offset=300,width=30,height=30)
+                d.anchor_px=Point32(x=615,y=330)
+                msg.detections=[d]  # Missing depth still proves a residual box.
+            self.detection_pub.publish(msg)
+            return
         visible=True
         if self.case == 'lost_during_handoff':
             visible='ENTERING_FOD' not in self.mode_states
@@ -210,8 +238,13 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
         if self.case == 'returning_boxes' and self.loss_injected:
             visible=int(stamp.to_sec()*10)%3==0
         objects=[(1,self.nearest_x,self.nearest_y)] if visible else []
+        if self.case == 'outside_goal_only':
+            # Depth-valid side marking, about 4.9 m from the requested FOD.
+            objects = [(231,4.,-4.9)]
         if self.case in ('fuzzy_offset','three_targets','returning_boxes','invalid_depth','self_reflection','relaxed_tracking'):
             objects += [(2,5.3,1.2),(3,5.8,-1.1)]
+        if self.case == 'three_targets':
+            objects += [(231,2.5,-.8)]  # Closer to camera, outside the goal circle.
         if self.case == 'self_reflection':
             # Fixed on the moving chassis, closer and more confident than FOD.
             objects += [(99,x+.5*math.cos(yaw),y+.5*math.sin(yaw))]
@@ -245,38 +278,70 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
         for kind in (0x17,0x18,0x19,0x80):
             self.canbus_pub.publish(CanBusMessage(node_type=0x10,node_seq=0,msg_type=kind,payload=[0x10] if kind==0x80 else [0]))
         original=NavSatFix();original.header.stamp=rospy.Time.now()
-        original.latitude,original.longitude=local_to_gps(5,0,30.3007,104.3898)
+        original.latitude,original.longitude=local_to_gps(self.original_goal_x,0,30.3007,104.3898)
         self.goal_fix_pub.publish(original)
         rospy.sleep(.3)
+        if self.verification_case:
+            # A normal camera recovery must include the reverse/check without
+            # a separate opt-in service or GUI checkbox.
+            self.assertTrue(self.mode.get('verification_enabled'),self.mode)
+            self.assertFalse(self.mode.get('verification_this_run'),self.mode)
+            self.assertEqual(self.mode.get('verification',{}).get('phase'),'IDLE',self.mode)
+        else:
+            # Explicit compatibility case: the operator disabled the check.
+            response=rospy.ServiceProxy('/fod_navigation_mode/set_verification_enabled',SetBool)(False)
+            self.assertTrue(response.success,response.message)
         response=rospy.ServiceProxy('/fod_navigation_mode/set_fod_enabled',SetBool)(True)
         self.assertTrue(response.success,response.message)
-        deadline=time.monotonic()+55
+        deadline=time.monotonic()+65
         while time.monotonic()<deadline:
             state=self.mode.get('state')
             if state in ('FOD_COMPLETE_STOP','FOD_ABORTED','FAULT_STOP'):
                 break
-            if self.case=='no_fod' and self.route.get('state')=='COMPLETE' and self.sweeper.state==0:
+            if not self.verification_case and self.case in ('no_fod','outside_goal_only') and self.route.get('state')=='COMPLETE' and any(h[0]=='retract' for h in self.sweeper.hydraulic):
                 break
             rospy.sleep(.05)
         rospy.sleep(3.7)
         result=dict(case=self.case,mode=self.mode,route=self.route,modes=self.mode_states,
                     visual_states=self.states,selected_ids=sorted(self.selected_target_ids),
                     fallback_count=len(self.fallbacks),stop_x=self.x,loss_x=self.loss_x,
-                    sweep_first_x=self.sweep_first_x,sweep_state=self.sweeper.state,
+                    hydraulic_first_x=self.sweep_first_x,sweep_state=self.sweeper.state,
+                    motor_switches=self.sweeper.switches,device_commands=[c for c,_ in self.sweeper.commands],
                     min_fod_distance=self.min_fod_distance,stop_y=self.y,
                     hydraulic=[list(h[:2]) for h in self.sweeper.hydraulic],
                     goal_ids=[m.goal_id.id for m in self.goals],late_cancel_sent=self.late_cancel_sent)
         path=Path(rospy.get_param('~results_file'));path.write_text(json.dumps(result,ensure_ascii=False,indent=2))
         path.with_suffix('.trace.json').write_text(json.dumps(self.trace))
         self.assertIsNotNone(self.sweep_first_x,result)
-        self.assertGreater(self.sweep_first_x,-5.01,result)
+        self.assertGreater(self.sweep_first_x,self.original_goal_x-10.01,result)
         self.assertEqual(self.sweeper.state,0,result)
+        self.assertEqual(self.sweeper.switches,2,result)
+        self.assertEqual([c for c,_ in self.sweeper.commands if c != 'query'],
+                         ['extend','switch','switch','retract'],result)
         self.assertEqual([h[:2] for h in self.sweeper.hydraulic],[('extend',3),('retract',3)],result)
         self.assertEqual(len(set(result['goal_ids'])),len(result['goal_ids']),result)
         self.assertNotIn('ABORTED',self.route_states,result)
-        if self.case=='no_fod':
+        if self.verification_case:
+            expected={'pass':'PASSED','residual':'FOD_REMAINS','camera_loss':'INCONCLUSIVE','blocked':'INCONCLUSIVE'}[self.verification_case]
+            verify=self.mode.get('verification',{})
+            self.assertEqual(verify.get('result'),expected,result)
+            self.assertIn('FOD_VERIFY',self.mode_states,result)
+            if self.verification_case!='blocked':
+                self.assertEqual(verify['reverse_distance_m'],1.5)
+                self.assertAlmostEqual(verify['reverse_progress_m'],1.5,delta=.06)
+            else:
+                self.assertLess(abs(verify['reverse_progress_m']),.03,result)
+            self.assertAlmostEqual(self.command.linear.x,0.)
+            self.assertEqual(self.sweeper.state,0,result)
+            self.assertLessEqual(max(abs(t[3]) for t in self.trace if t[4]=='FOD_VERIFY'),.26,result)
+        if self.case in ('no_fod','outside_goal_only'):
             self.assertEqual(len(self.fallbacks),0,result)
             self.assertNotIn('FOD_ACTIVE',self.mode_states,result)
+            self.assertNotIn('ENTERING_FOD',self.mode_states,result)
+            self.assertIsNone(self.mode.get('fod_gps_point'),result)
+            self.assertAlmostEqual(self.route['final_x'],self.original_goal_x,places=5)
+            end_x=self.x+(self.mode['verification']['reverse_progress_m'] if self.verification_case else 0.)
+            self.assertLess(abs(end_x-self.original_goal_x),.35,result)
             return
         self.assertEqual(self.mode.get('state'),'FOD_COMPLETE_STOP',result)
         self.assertEqual(len(self.fallbacks),1,result)
@@ -288,8 +353,9 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
             self.assertNotIn('TRACK_WAIT',self.states[:self.states.index('GPS_HANDOFF')] if 'GPS_HANDOFF' in self.states else self.states,result)
         else:
             self.assertAlmostEqual(point['goal_x'],4.8,delta=.025)
-        self.assertGreater(self.x,4.5,result)  # Existing GPS arrival tolerance is 0.3 m.
-        self.assertLess(self.x,5.05,result)
+        end_x=self.x+(self.mode['verification']['reverse_progress_m'] if self.verification_case else 0.)
+        self.assertGreater(end_x,4.5,result)  # Existing GPS arrival tolerance is 0.3 m.
+        self.assertLess(end_x,5.05,result)
         self.assertAlmostEqual(self.command.linear.x,0.)
         self.assertNotIn('FOD_ABORTED',self.mode_states,result)
         self.assertNotIn('ABORT',self.states,result)
@@ -300,6 +366,33 @@ class GpsLossRecoveryTest(FakeWorldIntegrationTest):
             self.assertNotIn('TRACK_WAIT',self.states,result)
             self.assertGreater(self.loss_x-self.approach_x,.95,result)
         self.assertTrue(self.late_cancel_sent,result)
+
+        # The Qt new-target workflow must leave completed recovery without
+        # dispatching the retained target before the operator's new point.
+        goals_before = len(self.goals)
+        rospy.wait_for_service('/fod_navigation_mode/prepare_gps_goal', timeout=3)
+        response = rospy.ServiceProxy('/fod_navigation_mode/prepare_gps_goal', Trigger)()
+        self.assertTrue(response.success, response.message)
+        rospy.sleep(.3)
+        self.assertEqual(self.mode.get('state'), 'GPS_ACTIVE')
+        self.assertEqual(len(self.goals), goals_before)
+        self.assertFalse(self.route.get('active'))
+        next_goal = NavSatFix()
+        next_goal.header.stamp = rospy.Time.now()
+        next_goal.latitude, next_goal.longitude = local_to_gps(8, 0, 30.3007, 104.3898)
+        self.goal_fix_pub.publish(next_goal)
+        deadline = time.monotonic() + 3
+        while time.monotonic() < deadline and len(self.goals) == goals_before:
+            rospy.sleep(.03)
+        self.assertEqual(len(self.goals), goals_before + 1)
+        self.assertAlmostEqual(self.goals[-1].goal.target_pose.pose.position.x, 8, delta=.001)
+        self.assertFalse(self.mode.get('recovery_armed'))
+        self.assertEqual(self.mode.get('state'), 'GPS_ACTIVE')
+        self.assertEqual([c for c, _ in self.sweeper.commands if c != 'query'],
+                         ['extend', 'switch', 'switch', 'retract'])
+        result['next_goal_after_recovery'] = {'accepted_x': 8, 'old_goal_resent': False,
+                                             'mode': self.mode.get('state')}
+        path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 for name in unittest.defaultTestLoader.getTestCaseNames(FakeWorldIntegrationTest):

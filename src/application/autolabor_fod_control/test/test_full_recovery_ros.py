@@ -20,7 +20,7 @@ from autolabor_canbus_driver.msg import CanBusMessage, ChassisStatusInfo
 from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
 from geometry_msgs.msg import Point32, Twist
 from nav_msgs.msg import Odometry
-from sensor_msgs.msg import CameraInfo, RegionOfInterest
+from sensor_msgs.msg import CameraInfo, RegionOfInterest, LaserScan, CompressedImage
 from std_msgs.msg import Bool, Float64, String
 from std_srvs.srv import SetBool, SetBoolResponse
 
@@ -32,6 +32,13 @@ from test_sweep_test import DeviceServer
 
 # Every entry runs through actual GPS arming, 10 m sweep, visual handoff and stop.
 CASES = [
+    ("direct_nearest_no_gps_and_reverse_check", {"direct": True, "bystanders": True, "verify": True}),
+    ("direct_no_gps_clear_reverse_check", {"direct": True, "verify": True}),
+    ("direct_depth_holes_no_gps", {"direct": True, "bystanders": True, "depth_holes": True}),
+    ("direct_camera_lost_during_crossing", {"direct": True, "camera_off": True}),
+    ("direct_brake_rebound_then_reverse_check", {"direct": True, "verify": True, "brake_rebound_m": .0188}),
+    ("direct_final_stop_rollback_must_abort", {"direct": True, "brake_rebound_m": .05, "fault": "final_stop_rollback"}),
+    ("direct_approach_reverse_must_abort", {"direct": True, "fault": "approach_reverse"}),
     ("normal", {}),
     ("three_targets", {"bystanders": True}),
     ("depth_holes", {"bystanders": True, "depth_holes": True}),
@@ -39,10 +46,12 @@ CASES = [
     ("confidence_class_jitter", {"class_jitter": True}),
     ("region_boundary_jitter", {"region_jitter": True}),
     ("initial_target_low_in_frame", {"initial_q": .97}),
+    ("initial_target_high_in_frame", {"initial_q": .12, "loss_at": .70}),
     ("short_dropout_before_region", {"pre_dropout": .16, "initial_q": .30, "loss_at": .55}),
     ("long_dropout_then_same_target", {"pre_dropout": .70, "initial_q": .30, "loss_at": .55}),
     ("boxes_return_after_loss", {"blink": True, "bystanders": True}),
     ("camera_stops_during_crossing", {"camera_off": True}),
+    ("camera_stops_before_crossing", {"fault": "camera_disconnect"}),
     ("bad_frames_during_crossing", {"bad_after_loss": True}),
     ("duplicate_reordered_frames", {"duplicate": True}),
     ("malformed_unrelated_box", {"malformed": True}),
@@ -94,6 +103,15 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         self.visual_start_travel = None
         self.reference_ready = False
         self.loss_time = None
+        self.camera_drop_frames = 0
+        self.brake_rebound_started = False
+        self.brake_rebound_m = 0.0
+        self.approach_reverse_injected = False
+        self.blink_frames = 0
+        self.reference_loss_stamp = None
+        self.crossing_pose = None
+        self.first_zero_crossing_m = None
+        self.recovery_loss_grace_sec = float(rospy.get_param("/fod_visual_servo/recovery_loss_grace_sec", 0.0))
         self.pause_requests = []
         self.route_paused = False
         self.route_active = True
@@ -119,6 +137,11 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         self.detection_gap_zeros = []
         self.max_blind_heading_deg = 0.0
         self.max_blind_lateral_m = 0.0
+        self.sweeper.state = 0  # Automatic recovery must start and stop the motor.
+        self.sweeper.hydraulic.clear()
+        self.sweeper.commands.clear()
+        self.sweeper.switches = 0
+        self.hydraulic_seen = False
         self.sweeper.fragmented = self.scenario.get("sweep_fragmented", False)
         super().setUp()
         self.gps_pub = rospy.Publisher("/cmd_vel_gps", Twist, queue_size=1)
@@ -128,6 +151,16 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         self.cancel_sub = rospy.Subscriber("/move_base/cancel", GoalID, lambda m: None, queue_size=2)
         self.pause_service = rospy.Service("/gps/long_range/set_paused", SetBool, self._pause_cb)
         self.mode_proxy = rospy.ServiceProxy("/fod_navigation_mode/set_fod_enabled", SetBool)
+        self.direct_proxy = rospy.ServiceProxy("/fod_navigation_mode/set_direct_fod_enabled", SetBool)
+        self.scan_pub = rospy.Publisher("/scan", LaserScan, queue_size=1)
+        self.image_pub = rospy.Publisher("/fod_camera/image_raw/compressed", CompressedImage, queue_size=1)
+        import cv2
+        import numpy as np
+        self.check_image = cv2.imencode('.jpg', np.tile(np.arange(100, dtype=np.uint8), (100, 1)))[1].tobytes()
+        self.verification_trace = []
+        self.gps_goal_messages = []
+        from sensor_msgs.msg import NavSatFix
+        self.gps_target_sub = rospy.Subscriber('/gps/goal_fix', NavSatFix, self.gps_goal_messages.append, queue_size=10)
         self.actual_linear_x = 0.0
         self.extra_ready = True
 
@@ -147,13 +180,16 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
             pass
         self.timer.shutdown()
         super().tearDown()
-        for item in (self.gps_pub, self.gps_pose_pub, self.route_pub, self.mode_sub, self.cancel_sub):
+        for item in (self.gps_pub, self.gps_pose_pub, self.route_pub, self.mode_sub, self.cancel_sub,
+                     self.scan_pub, self.image_pub, self.gps_target_sub):
             item.unregister()
         self.pause_service.shutdown("case ended")
 
     def _mode_cb(self, message):
         with self.lock:
             self.mode_status = json.loads(message.data)
+            if hasattr(self, 'verification_trace'):
+                self.verification_trace.append(self.mode_status.get('verification', {}))
             state = self.mode_status.get("state")
             if not self.mode_states or self.mode_states[-1] != state:
                 self.mode_states.append(state)
@@ -172,11 +208,21 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
                 self.sweep_on_at_visual_start = self.sweeper.state == 1
 
     def _command_cb(self, message):
+        with self.lock:
+            before = len(self.intermediate_zero_commands)
+            forward_finished = self.scenario.get('verify') and 'COMPLETE' in self.states
         super()._command_cb(message)
+        if forward_finished:
+            # The inherited metric covers the forward crossing only. A later
+            # reverse deliberately returns inside that old distance interval.
+            with self.lock:
+                del self.intermediate_zero_commands[before:]
         now = time.monotonic()
         if abs(message.linear.x) > 1e-6:
             return
         with self.lock:
+            if self.crossing_pose is not None and self.first_zero_crossing_m is None:
+                self.first_zero_crossing_m = local_displacement(*self.crossing_pose, self.x, self.y)[0]
             if (self.control_pause_started is not None
                     and self.control_pause_started <= now < self.control_pause_until):
                 self.control_pause_zeros.append(now - self.control_pause_started)
@@ -215,6 +261,25 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
             target_v = desired.linear.x if abs(desired.linear.x) >= .199 else 0.0
             acceleration = 1.0 if target_v > self.actual_linear_x else self.scenario.get("deceleration", 1.0)
             self.actual_linear_x += max(-acceleration * dt, min(acceleration * dt, target_v - self.actual_linear_x))
+            # Reproduce the measured M2 stop rebound without sending a reverse
+            # command. Integrate signed motion too: a velocity-only fake would
+            # miss the independent rollback-distance check.
+            final_stop = self.visual_status.get("state") == "FINAL_STOP"
+            rebound = self.scenario.get("brake_rebound_m", 0.0)
+            if rebound and final_stop and abs(self.actual_linear_x) < .005:
+                self.brake_rebound_started = True
+            if self.brake_rebound_started:
+                if self.brake_rebound_m < rebound:
+                    self.actual_linear_x = -min(.0556651, (rebound - self.brake_rebound_m) / dt)
+                    self.brake_rebound_m -= self.actual_linear_x * dt
+                elif final_stop:
+                    self.actual_linear_x = 0.0
+            if (self.scenario.get("fault") == "approach_reverse"
+                    and self.visual_status.get("state") == "APPROACH"
+                    and self.visual_start_travel is not None
+                    and self.travel_m - self.visual_start_travel > .05):
+                self.actual_linear_x = -.0556651
+                self.approach_reverse_injected = True
             if self.scenario.get("fault") == "stall" and self.loss_time is not None:
                 self.actual_linear_x = 0.0
             steer_past = [m for t, m in history if t <= now - self.scenario.get("steer_delay", .08)]
@@ -231,15 +296,34 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
             x, y, yaw, travel = self.x, self.y, self.yaw, self.travel_m
             if self.sweeper.state:
                 self.sweep_seen_on = True
+            if self.sweeper.hydraulic and not self.hydraulic_seen:
+                self.hydraulic_seen = True
                 if self.gps_goal_x - x >= 10.0 + .02:
                     self.premature_sweep = True
             self.trace.append([now - self.started, x, y, v, self.command.linear.x,
                                self.visual_status.get("state", ""), self.sweeper.state])
         stamp = rospy.Time.now()
+        scan = LaserScan()
+        scan.header.stamp, scan.header.frame_id = stamp, 'base_link'
+        scan.angle_min, scan.angle_increment = -math.pi, math.pi / 180
+        scan.angle_max = math.pi
+        scan.range_min, scan.range_max = .05, 30.
+        scan.ranges = [float('inf')] * 361
+        self.scan_pub.publish(scan)
+        picture = CompressedImage()
+        picture.header.stamp, picture.format, picture.data = stamp, 'jpeg', self.check_image
+        self.image_pub.publish(picture)
         after_loss = self.loss_time is not None
-        if not (after_loss and self.scenario.get("camera_off")):
+        # Loss now has a configured re-observation grace. Inject the
+        # "during crossing" case only after BLIND_ADVANCE really began;
+        # keep a separate negative case for loss during that grace.
+        camera_off = ((self.scenario.get("camera_off") and "BLIND_ADVANCE" in self.states)
+                      or (after_loss and self.scenario.get("fault") == "camera_disconnect"))
+        if not camera_off:
             self._publish_camera(stamp)
             self._publish_detection(stamp, travel, x, y, yaw)
+        else:
+            self.camera_drop_frames += 1
         odom_period = .1
         if now - self.last_odom_publish >= odom_period - .003:
             self.last_odom_publish = now
@@ -271,13 +355,13 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         gps.pose.pose.position.x, gps.pose.pose.position.y = x, y
         self.gps_pose_pub.publish(gps)
         reached = x >= self.gps_goal_x - .12 and not self.route_paused
-        self.route_active = not reached
+        self.route_active = not reached and not self.scenario.get('direct')
         self.route_pub.publish(String(data=json.dumps({
             "active": self.route_active, "state": "COMPLETE" if reached else "ACTIVE_FINAL",
             "paused": self.route_paused, "frame_id": "camera_init", "final_x": self.gps_goal_x,
             "final_y": 0.0, "route_id": "sim/" + self.case_name})))
         gps_cmd = Twist()
-        gps_cmd.linear.x = 0 if reached else .60
+        gps_cmd.linear.x = (0. if not self.route_paused else .60) if self.scenario.get('direct') else (0 if reached else .60)
         self.gps_pub.publish(gps_cmd)
 
     def _publish_camera(self, stamp):
@@ -294,7 +378,9 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         item.class_id, item.class_name, item.confidence = 0, "Metal", .90
         item.track_id, item.depth_valid = identity, True
         item.depth_m, item.range_m = distance, distance + .05
-        v = (.25 + .375 * q) * 719
+        # Current ZED acquisition/servo profile uses the full image. Exercise
+        # rows outside the old 25%..62.5% band instead of hiding that coverage.
+        v = q * 719
         item.anchor_px = Point32(x=u, y=v)
         item.bbox = RegionOfInterest(x_offset=int(u - 25), y_offset=int(v - 35), width=50, height=35)
         return item
@@ -327,8 +413,10 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         visible = distance < self.scenario.get("loss_at", .35)
         if self.scenario.get("pre_dropout") and .12 < elapsed < .12 + self.scenario["pre_dropout"]:
             visible = False
-        if self.scenario.get("blink") and self.loss_time is not None:
+        if self.scenario.get("blink") and "BLIND_ADVANCE" in self.states:
             visible = self.frame_n % 3 == 0
+            if visible:
+                self.blink_frames += 1
         if self.scenario.get("no_target"):
             visible = False
         if visible and self.visual_status.get("target_locked") and .5 <= q <= 1 and 236 <= u <= 1004:
@@ -336,6 +424,17 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         if not visible and self.reference_ready and self.loss_pose is None:
             self.loss_pose = (x, y, yaw)
             self.loss_time = time.monotonic()
+        # Current ZED configuration allows a brief re-observation period.
+        # Keep first-loss travel, but measure the separate 0.8 m crossing
+        # from the first absent source frame after that configured period.
+        if self.crossing_pose is None:
+            if visible:
+                self.reference_loss_stamp = None
+            elif self.reference_ready:
+                if self.reference_loss_stamp is None:
+                    self.reference_loss_stamp = stamp.to_sec()
+                if stamp.to_sec() - self.reference_loss_stamp >= self.recovery_loss_grace_sec:
+                    self.crossing_pose = (x, y, yaw)
         m = FodDetectionArray()
         m.header.stamp, m.header.frame_id = stamp, "zed2_left_camera_optical_frame"
         m.image_width, m.image_height, m.model_sha256, m.model_task = 1280, 720, MODEL_SHA, "detect"
@@ -375,43 +474,78 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         for kind in (0x17, 0x18, 0x19, 0x80):
             self.canbus_pub.publish(CanBusMessage(node_type=0x10, node_seq=0, msg_type=kind,
                                                 payload=[0x10] if kind == 0x80 else [0]))
+        verification = rospy.ServiceProxy('/fod_navigation_mode/set_verification_enabled', SetBool)
+        self.assertTrue(verification(bool(self.scenario.get('verify'))).success)
         if not self.scenario.get("not_armed"):
-            response = self.mode_proxy(True)
+            response = self.direct_proxy(True) if self.scenario.get('direct') else self.mode_proxy(True)
             self.assertTrue(response.success, response.message)
+            if self.scenario.get('direct'):
+                # A double click is idempotent and cannot issue another rod pulse.
+                self.assertTrue(self.direct_proxy(True).success)
         deadline = time.monotonic() + 30
         is_gps = self.scenario.get("no_target") or self.scenario.get("not_armed")
         while time.monotonic() < deadline:
             if self.mode_status.get("state") in ("FOD_COMPLETE_STOP", "FOD_ABORTED", "FAULT_STOP"):
                 break
-            if is_gps and not self.route_active and not self.sweeper.state:
+            if is_gps and not self.route_active and not self.mode_status.get("recovery_armed"):
                 break
             rospy.sleep(.05)
-        rospy.sleep(.75)
+        rospy.sleep(3.7)  # Let the actual 3-second retraction CLI finish.
         with self.lock:
             state = self.mode_status.get("state", "")
             result = {"case": self.case_name, "seed": self.repeat_seed, "mode": state,
                       "visual": self.visual_status.get("state"), "reason": self.latest_reason,
                       "ids": sorted(self.selected_target_ids), "modes": list(self.mode_states),
                       "visual_states": list(self.states), "sweep_on": self.sweep_seen_on,
-                      "sweep_off": self.sweeper.state == 0, "premature_sweep": self.premature_sweep,
+                      "sweep_off": self.sweeper.state == 0,
+                      "motor_switches": self.sweeper.switches,
+                      "hydraulic": [list(h[:2]) for h in self.sweeper.hydraulic],
+                      "premature_sweep": self.premature_sweep,
                       "first_zero_after_loss_m": self.first_zero_forward_m,
+                      "recovery_loss_grace_sec": self.recovery_loss_grace_sec,
+                      "first_zero_crossing_m": self.first_zero_crossing_m,
                       "intermediate_zero_commands": list(self.intermediate_zero_commands),
                       "odom_dropped_count": self.odom_dropped_count,
                       "detection_gap_frames": self.detection_gap_frames,
+                      "camera_drop_frames": self.camera_drop_frames,
+                      "brake_rebound_m": self.brake_rebound_m,
+                      "approach_reverse_injected": self.approach_reverse_injected,
+                      "blink_frames": self.blink_frames,
                       "detection_gap_zero_commands": list(self.detection_gap_zeros),
                       "control_pause_injected": self.control_pause_injected,
                       "control_pause_zero_commands": list(self.control_pause_zeros),
                       "max_blind_heading_deg": self.max_blind_heading_deg,
                       "max_blind_lateral_m": self.max_blind_lateral_m}
+            if self.scenario.get('direct'):
+                result['verification'] = self.mode_status.get('verification')
+                result['gps_goals_sent'] = len(self.gps_goal_messages)
+                result['direct_recovery'] = self.mode_status.get('direct_recovery')
             if self.loss_pose is not None:
                 result["forward_m"], result["lateral_m"] = local_displacement(*self.loss_pose, self.x, self.y)
+            if self.crossing_pose is not None:
+                result["crossing_forward_m"], result["crossing_lateral_m"] = local_displacement(
+                    *self.crossing_pose, self.x, self.y)
             self.results.append(result)
             output = rospy.get_param("~results_file", "")
             if output:
                 Path(output).write_text(json.dumps(self.results, indent=2))
                 Path(output).with_name(Path(output).stem + "_" + self.case_name + ".json").write_text(json.dumps(self.trace))
         self.assertFalse(self.premature_sweep, result)
+        self.assertEqual(self.sweeper.state, 0, result)
+        self.assertEqual(self.sweeper.switches, 0 if self.scenario.get("not_armed") else 2, result)
+        self.assertTrue(all(c in ("query", "switch", "extend", "retract") for c,_ in self.sweeper.commands), result)
+        expected_hydraulic = [] if self.scenario.get("not_armed") else [("extend", 3), ("retract", 3)]
+        self.assertEqual([h[:2] for h in self.sweeper.hydraulic], expected_hydraulic, result)
         if self.scenario.get("fault"):
+            if self.scenario["fault"] == "final_stop_rollback":
+                self.assertIn("FINAL_STOP", self.states, result)
+                self.assertGreater(self.brake_rebound_m, .02, result)
+                self.assertIn("odometry moved backward", self.latest_reason, result)
+            if self.scenario["fault"] == "approach_reverse":
+                self.assertTrue(self.approach_reverse_injected, result)
+                self.assertIn("reverse motion", self.latest_reason, result)
+            if self.scenario["fault"] == "camera_disconnect":
+                self.assertGreater(self.camera_drop_frames, 0, result)
             self.assertEqual(state, "FOD_ABORTED", result)
             self.assertNotIn("FOD_COMPLETE_STOP", self.mode_states)
             self.assertEqual(self.command.linear.x, 0.0)
@@ -421,9 +555,28 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
             self.assertNotIn("APPROACH", self.states)
             self.assertFalse(self.route_active)
             self.assertEqual(self.sweep_seen_on, not self.scenario.get("not_armed", False))
+            self.assertEqual(self.hydraulic_seen, not self.scenario.get("not_armed", False))
             return
         self.assertEqual(state, "FOD_COMPLETE_STOP", result)
-        self.assertEqual(self.visual_status.get("state"), "COMPLETE", result)
+        if self.scenario.get("brake_rebound_m"):
+            self.assertAlmostEqual(self.brake_rebound_m, self.scenario["brake_rebound_m"], places=5)
+        if self.scenario.get('direct'):
+            self.assertTrue(self.mode_status.get('direct_recovery'), result)
+            self.assertFalse(self.mode_status.get('gps_fallback_enabled'), result)
+            self.assertFalse(self.gps_goal_messages, result)
+            self.assertNotIn(False, self.pause_requests, result)
+            self.assertFalse(rospy.get_param('/fod_visual_servo/recovery_reference_goal'), result)
+            self.assertFalse(rospy.get_param('/fod_visual_servo/gps_handoff_on_approach_limit'), result)
+        if self.scenario.get('verify'):
+            # Reinspection intentionally reports ANY stable residual FOD.
+            # Other uncollected objects must not be called a clear scene.
+            expected = 'FOD_REMAINS' if self.scenario.get('bystanders') else 'PASSED'
+            self.assertEqual(self.mode_status['verification']['phase'], expected, result)
+            self.assertGreaterEqual(self.mode_status['verification']['reverse_progress_m'], 1.5, result)
+            self.assertIn('REVERSING', [s.get('phase') for s in self.verification_trace])
+            self.assertIn('OBSERVING', [s.get('phase') for s in self.verification_trace])
+        else:
+            self.assertEqual(self.visual_status.get("state"), "COMPLETE", result)
         self.assertEqual(self.selected_target_ids, {1}, result)
         self.assertTrue(self.sweep_on_at_visual_start, result)
         self.assertTrue(self.sweep_seen_on, result)
@@ -432,16 +585,22 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
         self.assertNotIn("ABORT", self.states, result)
         self.assertEqual(self.states.count("BLIND_ADVANCE"), 1, result)
         self.assertFalse(self.intermediate_zero_commands, result)
-        self.assertGreaterEqual(result["forward_m"], .795, result)
-        self.assertLessEqual(result["forward_m"], .96, result)
-        self.assertGreaterEqual(self.first_zero_forward_m, .795, result)
+        self.assertIsNotNone(self.crossing_pose, result)
+        if not self.scenario.get('verify'):
+            self.assertGreaterEqual(result["crossing_forward_m"], .795, result)
+            self.assertLessEqual(result["crossing_forward_m"], .96, result)
+        self.assertGreaterEqual(self.first_zero_crossing_m, .795, result)
         # Delayed odometry describes a past pose: at the measured 0.80 m
         # trigger the simulated chassis has already travelled further. Bound
         # both this latency and the subsequent real braking distance above.
         trigger_limit = .90 if self.scenario.get("odom_delay") else .86
-        self.assertLessEqual(self.first_zero_forward_m, trigger_limit, result)
+        self.assertLessEqual(self.first_zero_crossing_m, trigger_limit, result)
         self.assertEqual(self.command.linear.x, 0.0, result)
         self.assertLess(abs(self.actual_linear_x), .01, result)
+        if self.scenario.get("camera_off"):
+            self.assertGreater(self.camera_drop_frames, 0, result)
+        if self.scenario.get("blink"):
+            self.assertGreater(self.blink_frames, 0, result)
         if self.scenario.get("odom_gaps"):
             self.assertGreater(self.odom_dropped_count, 0, result)
         if self.scenario.get("pre_dropout", 0) > .3:

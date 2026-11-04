@@ -14,6 +14,7 @@ ACQUIRE = "ACQUIRE"
 APPROACH = "APPROACH"
 TRACK_WAIT = "TRACK_WAIT"
 BLIND_ADVANCE = "BLIND_ADVANCE"
+MAX_RECOVERY_TARGET_RANGE_M = 10.0
 
 
 @dataclass(frozen=True)
@@ -253,6 +254,19 @@ def validate_detection(
         raise ValueError("detection anchor lies outside the image")
 
 
+def recovery_depth_allowed(detection: PixelDetection) -> bool:
+    """Exclude measured distant objects, without turning depth holes into loss.
+
+    range_m is the camera-to-target distance derived from registered optical
+    depth. Check both fields before any invalid-depth pixel fallback. Missing
+    depth still cannot acquire a new ZED target, but may track a locked one.
+    """
+    return not detection.depth_valid or not (
+        detection.depth_m > MAX_RECOVERY_TARGET_RANGE_M
+        or detection.range_m > MAX_RECOVERY_TARGET_RANGE_M
+    )
+
+
 def intersection_over_union(first: PixelDetection, second: PixelDetection) -> float:
     left = max(first.x, second.x)
     top = max(first.y, second.y)
@@ -307,6 +321,9 @@ def same_target_observations(previous, candidates, other_ids=()):
     Known neighbouring identities are excluded. A new identity must be the
     only plausible box near the last observation; no held box is generated.
     """
+    # An exact/reused ID must not bypass the range limit or refresh GPS-memory
+    # visibility with a far background object.
+    candidates = tuple(d for d in candidates if recovery_depth_allowed(d))
     exact = tuple(d for d in candidates if d.track_id == previous.track_id)
     if exact:
         return exact
@@ -733,6 +750,7 @@ class TargetPhaseMachine:
         if image_width <= 1 or image_height <= 1 or approach_distance_m < 0.0:
             return self._decision(fault="target state-machine input is invalid")
 
+        candidates = tuple(d for d in candidates if recovery_depth_allowed(d))
         if self.state == ACQUIRE:
             if self.config.select_nearest_by_depth:
                 eligible = [d for d in candidates if d.track_id > 0 and d.depth_valid

@@ -10,14 +10,18 @@
   <arg name="grab_frame_rate" default="60"/>
   <arg name="pub_frame_rate" default="60.0"/>
   <arg name="depth_mode" default="ULTRA"/>
-  <arg name="cam_pos_x" default="0.0"/>
-  <!-- 2026-10-14 antenna centreline stereo estimate: left optical camera
-       about 0.025 m RIGHT of chassis centre; internal left offset is +0.060.
-       Approximate lateral mount correction only; fore/aft and pitch unchanged. -->
-  <arg name="cam_pos_y" default="-0.085"/>
-  <arg name="cam_pos_z" default="0.0"/>
+  <!-- 2026-11-03 installation, matching the reference project's rectified
+       LEFT image: left optical origin = (0.96, 0, 0.07) in base_link,
+       facing forward and level. base_link is 0.25 m above the road.
+       The vendor ZED2 URDF describes the mounting screw: centre is +0.015 m
+       high with +0.05 rad pitch; left eye is (-0.01,+0.06,0) from centre.
+       Compensate those internal transforms instead of applying them twice.
+       Existing cam_pos_* CLI overrides still refer to the mounting screw. -->
+  <arg name="cam_pos_x" default="$(eval 0.96 + 0.01 + 0.015 * sin(0.05))"/>
+  <arg name="cam_pos_y" default="-0.06"/>
+  <arg name="cam_pos_z" default="$(eval 0.07 - 0.015 * cos(0.05))"/>
   <arg name="cam_roll" default="0.0"/>
-  <arg name="cam_pitch" default="0.0"/>
+  <arg name="cam_pitch" default="-0.05"/>
   <arg name="cam_yaw" default="0.0"/>
 
   <group if="$(arg publish_fod_aliases)">

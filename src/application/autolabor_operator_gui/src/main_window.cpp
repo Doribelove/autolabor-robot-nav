@@ -32,6 +32,7 @@
 #include <QPlainTextEdit>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QProcessEnvironment>
 #include <QPushButton>
 #include <QScrollArea>
@@ -39,6 +40,7 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTabWidget>
+#include <QTabBar>
 #include <QTextBrowser>
 #include <QPixmap>
 #include <QtConcurrent/QtConcurrentRun>
@@ -67,6 +69,8 @@ const char* const kImageQualityControlService =
     "/fod_image_quality_controller/set_enabled";
 const char* const kFodModeService =
     "/fod_navigation_mode/set_fod_enabled";
+const char* const kDirectFodModeService =
+    "/fod_navigation_mode/set_direct_fod_enabled";
 
 struct ModeStatusView
 {
@@ -74,13 +78,17 @@ struct ModeStatusView
   bool gps_paused = false;
   bool move_base_goals_allowed = false;
   bool retain_gps_route = true;
+  bool direct_recovery_supported = false;
+  bool direct_recovery = false;
   bool recovery_armed = false;
   bool sweep_start_requested = false;
   bool recovery_sweep_ready = false;
+  bool sweep_cleanup_pending = false;
   bool fod_target_available = false;
   bool gps_fallback_enabled = false;
   QString fod_gps_reason;
   QJsonObject fod_gps_point;
+  QJsonObject verification;
   double final_goal_distance_m = -1.0;
   double recovery_radius_m = 10.0;
   QString state;
@@ -137,6 +145,8 @@ QString modeDisplayName(const QString& state)
     return QStringLiteral("视觉控制");
   if (state == QStringLiteral("FOD_COMPLETE_STOP"))
     return QStringLiteral("回收行程完成停车");
+  if (state == QStringLiteral("FOD_VERIFY"))
+    return QStringLiteral("垃圾回收判定 / 倒退复查");
   if (state == QStringLiteral("ENTERING_GPS_RECOVERY"))
     return QStringLiteral("丢框转 GPS 回收");
   if (state == QStringLiteral("GPS_FOD_RECOVERY"))
@@ -168,14 +178,18 @@ ModeStatusView parseModeStatus(const std::string& json)
   result.reason = object.value(QStringLiteral("reason")).toString();
   result.command_source = object.value(QStringLiteral("command_source")).toString();
   result.retain_gps_route = object.value(QStringLiteral("retain_gps_route")).toBool(true);
+  result.direct_recovery_supported = object.value(QStringLiteral("direct_recovery_supported")).toBool(false);
+  result.direct_recovery = object.value(QStringLiteral("direct_recovery")).toBool(false);
   result.recovery_armed = object.value(QStringLiteral("recovery_armed")).toBool(false);
   result.sweep_start_requested = object.value(QStringLiteral("sweep_start_requested")).toBool(false);
   result.recovery_sweep_ready = object.value(QStringLiteral("recovery_sweep_ready")).toBool(false);
+  result.sweep_cleanup_pending = object.value(QStringLiteral("sweep_cleanup_pending")).toBool(false);
   result.sweep_status = object.value(QStringLiteral("sweep_status")).toString();
   result.fod_target_available = object.value(QStringLiteral("fod_target_available")).toBool(false);
   result.gps_fallback_enabled = object.value(QStringLiteral("gps_fallback_enabled")).toBool(false);
   result.fod_gps_reason = object.value(QStringLiteral("fod_gps_reason")).toString();
   result.fod_gps_point = object.value(QStringLiteral("fod_gps_point")).toObject();
+  result.verification = object.value(QStringLiteral("verification")).toObject();
   result.final_goal_distance_m = object.value(QStringLiteral("final_goal_distance_m")).toDouble(-1.0);
   result.recovery_radius_m = object.value(QStringLiteral("recovery_radius_m")).toDouble(10.0);
   return result;
@@ -199,6 +213,8 @@ bool textIsTrue(const QString& value)
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
+  direct_panel_only_ = QApplication::arguments().contains(QStringLiteral("--camera-recovery-panel"));
+  platform_panel_only_ = QApplication::arguments().contains(QStringLiteral("--platform-task-panel"));
   buildUi();
 
   connect(&ui_refresh_timer_, &QTimer::timeout, this, &MainWindow::refreshUi);
@@ -260,7 +276,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::buildUi()
 {
-  setWindowTitle(QStringLiteral("Autolabor 无人车操作与诊断台"));
+  setWindowTitle(platform_panel_only_ ? QStringLiteral("FOD-102 平台任务") :
+                 direct_panel_only_ ? QStringLiteral("Autolabor 独立相机回收")
+                                   : QStringLiteral("Autolabor 无人车操作与诊断台"));
   resize(1680, 1000);
   setMinimumSize(1100, 700);
 
@@ -368,9 +386,23 @@ void MainWindow::buildUi()
   });
   connect(sweep, &SweepPanel::operationEvent, this, &MainWindow::appendEvent);
   tabs_->addTab(sweep, QStringLiteral("清扫"));
-  QTimer::singleShot(1000, sweep, &SweepPanel::queryStatus);
+  if (!direct_panel_only_ && !platform_panel_only_)
+    QTimer::singleShot(1000, sweep, &SweepPanel::queryStatus);
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
   root->addWidget(tabs_, 1);
+  if (direct_panel_only_)
+  {
+    tabs_->setCurrentIndex(6);  // Same vision page and service buttons as the full console.
+    tabs_->tabBar()->hide();
+    top_bar->hide();
+  }
+  if (platform_panel_only_)
+  {
+    tabs_->setCurrentIndex(4);
+    tabs_->tabBar()->hide();
+    top_bar->hide();
+    resize(1200, 950);
+  }
 
   setCentralWidget(central);
 }
@@ -525,6 +557,7 @@ QWidget* MainWindow::buildOverviewPage()
   gps_goal_layout->addWidget(
       createMetricRow(QStringLiteral("入口状态"), &values_["manual_goal_hint"]), 3, 0, 1, 2);
   side_layout->addWidget(gps_goal);
+  side_layout->addWidget(buildDirectRecoveryPanel(side_content, true));
 
   auto* control_mode = new QGroupBox(QStringLiteral("导航 / 视觉控制模式"), side_content);
   auto* control_mode_layout = new QVBoxLayout(control_mode);
@@ -542,7 +575,7 @@ QWidget* MainWindow::buildOverviewPage()
   control_mode_layout->addWidget(overview_fod_start_button_);
   control_mode_layout->addWidget(overview_fod_stop_button_);
   auto* mode_note = new QLabel(
-      QStringLiteral("开启后，距最终目标小于 10 米即升出液压杆 3 秒并启动清扫。无有效 FOD 时继续 GPS 导航并等待，"
+      QStringLiteral("开启回收后，距最终目标小于 10 米即升出液压杆 3 秒并启动清扫。无有效 FOD 时继续 GPS 导航并等待，"
                      "ZED 按实测距离锁定最近一个 FOD，回收速度 0.6 m/s。"
                      "只回收一个，完成后停车、停止清扫并回收液压杆 3 秒；点击恢复导航才继续 GPS 路线。"),
       control_mode);
@@ -686,6 +719,32 @@ QWidget* MainWindow::buildRabbitPage()
   auto* root = new QVBoxLayout(page);
   root->setContentsMargins(20, 16, 20, 18);
   root->setSpacing(16);
+  auto* platform = new QGroupBox(QStringLiteral("平台任务 · FOD-102"), page);
+  auto* platform_layout = new QVBoxLayout(platform);
+  platform_layout->addWidget(createMetricRow(QStringLiteral("平台连接 / 自动执行"), &values_["platform_connection"]));
+  platform_layout->addWidget(createMetricRow(QStringLiteral("位置上报 / 消息接收"), &values_["platform_counts"]));
+  platform_layout->addWidget(createMetricRow(QStringLiteral("任务编号"), &values_["platform_mission"]));
+  platform_layout->addWidget(createMetricRow(QStringLiteral("执行状态 / 点位进度"), &values_["platform_progress"]));
+  platform_layout->addWidget(createMetricRow(QStringLiteral("当前情况"), &values_["platform_reason"]));
+  platform_layout->addWidget(createMetricRow(QStringLiteral("最近消息处理"), &values_["platform_received"]));
+  platform_points_ = new QPlainTextEdit(platform);
+  platform_points_->setReadOnly(true);
+  platform_points_->setPlaceholderText(QStringLiteral("收到本车任务后显示点位。普通任务依次导航；回收任务沿用相机回收流程。"));
+  platform_points_->setMinimumHeight(110);
+  platform_points_->setMaximumHeight(180);
+  platform_layout->addWidget(platform_points_);
+  platform_cancel_ = new QPushButton(QStringLiteral("取消远端任务并停车"), platform);
+  platform_cancel_->setObjectName(QStringLiteral("dangerButton"));
+  platform_cancel_->setEnabled(false);
+  connect(platform_cancel_, &QPushButton::clicked, this, [this]() {
+    callTriggerService("/fod_platform/cancel_task", platform_cancel_, QStringLiteral("取消远端任务"));
+  });
+  platform_layout->addWidget(platform_cancel_);
+  auto* platform_note = new QLabel(QStringLiteral("已启用的自动任务仅接受发给 FOD-102 的有效任务。"
+      "通信测试只显示接收结果；任务流程结束不单独证明垃圾已入仓。"), platform);
+  platform_note->setWordWrap(true);
+  platform_layout->addWidget(platform_note);
+  root->addWidget(platform);
   auto* grid = new QGridLayout();
   grid->setHorizontalSpacing(16);
   grid->setVerticalSpacing(16);
@@ -861,6 +920,7 @@ QWidget* MainWindow::buildVisionPage()
   auto* controls_layout = new QVBoxLayout(controls);
   controls_layout->setContentsMargins(8, 0, 8, 8);
   controls_layout->setSpacing(14);
+  controls_layout->addWidget(buildDirectRecoveryPanel(controls, false));
 
   auto* health = new QGroupBox(QStringLiteral("相机与 YOLO11 状态"), controls);
   auto* health_layout = new QVBoxLayout(health);
@@ -967,6 +1027,12 @@ QWidget* MainWindow::buildVisionPage()
       createMetricRow(QStringLiteral("本次单个目标"), &values_["vision_selected_target"]));
   mode_layout->addWidget(
       createMetricRow(QStringLiteral("状态原因"), &values_["vision_mode_reason"]));
+  auto* verification_note = new QLabel(QStringLiteral("回收完成后自动倒退 1.5 m，并停车复查 2 秒"), mode);
+  verification_note->setObjectName(QStringLiteral("recoveryVerification"));
+  verification_note->setWordWrap(true);
+  verification_note->setToolTip(QStringLiteral("停清扫并收杆后，以 0.25 m/s 倒退 1.5 米；停车观察 2 秒。"
+      "同一 FOD 持续至少 0.3 秒表示残留；未检出为视觉复查通过，不能代替实物入仓确认。"));
+  mode_layout->addWidget(verification_note);
   fod_start_button_ = new QPushButton(QStringLiteral("启动相机控制回收"), mode);
   fod_start_button_->setObjectName(QStringLiteral("visionButton"));
   fod_start_button_->setMinimumHeight(58);
@@ -978,9 +1044,10 @@ QWidget* MainWindow::buildVisionPage()
   mode_layout->addWidget(fod_start_button_);
   mode_layout->addWidget(fod_stop_button_);
   auto* safety = new QLabel(
-      QStringLiteral("可提前开启回收。GPS 模式下，距最终目标小于 10 米即升出液压杆 3 秒并启动清扫，"
+      QStringLiteral("可提前开启回收，距最终目标小于 10 米即升出液压杆 3 秒并启动清扫，"
                      "不依赖 FOD 检测；没有有效 FOD 时继续按 GPS 回收，"
-                     "ZED 只锁定有有效深度的最近一个目标，完成后停车、停止清扫并回收液压杆 3 秒。"),
+                     "ZED 只锁定有有效深度的最近一个目标，完成后停车、停止清扫并回收液压杆 3 秒，"
+                     "随后自动倒退 1.5 米并复查。"),
       mode);
   safety->setWordWrap(true);
   safety->setStyleSheet(
@@ -988,6 +1055,8 @@ QWidget* MainWindow::buildVisionPage()
                      "border-radius:6px;padding:10px;font-size:10pt;"));
   mode_layout->addWidget(safety);
   controls_layout->addWidget(mode);
+  if (direct_panel_only_)
+    mode->hide();
   controls_layout->addStretch();
   controls_scroll->setWidget(controls);
   splitter->addWidget(controls_scroll);
@@ -998,6 +1067,45 @@ QWidget* MainWindow::buildVisionPage()
   splitter->setSizes({ 1120, 500 });
   root->addWidget(splitter, 1);
   return page;
+}
+
+QWidget* MainWindow::buildDirectRecoveryPanel(QWidget* parent, bool overview)
+{
+  auto* panel = new QGroupBox(QStringLiteral("独立相机回收"), parent);
+  panel->setObjectName(QStringLiteral("directRecoveryPanel"));
+  auto* layout = new QVBoxLayout(panel);
+  auto* start = new QPushButton(QStringLiteral("一键启动相机直接回收"), panel);
+  start->setObjectName(QStringLiteral("visionButton"));
+  start->setMinimumHeight(48);
+  auto* stop = new QPushButton(QStringLiteral("停止回收并保持停车"), panel);
+  stop->setObjectName(QStringLiteral("dangerButton"));
+  stop->setMinimumHeight(42);
+  start->setEnabled(false);
+  stop->setEnabled(false);
+  connect(start, &QPushButton::clicked, this, [this]() { requestFodMode(true, true); });
+  connect(stop, &QPushButton::clicked, this, [this]() { requestFodMode(false, true); });
+  if (overview)
+  {
+    overview_direct_start_button_ = start;
+    overview_direct_stop_button_ = stop;
+  }
+  else
+  {
+    direct_start_button_ = start;
+    direct_stop_button_ = stop;
+  }
+  layout->addWidget(start);
+  layout->addWidget(stop);
+  layout->addWidget(createMetricRow(QStringLiteral("状态"),
+      &values_[overview ? "overview_direct_status" : "vision_direct_status"]));
+  auto* note = new QLabel(QStringLiteral(
+      "无需发送 GPS 目标。点击即升杆 3 秒并启动清扫，选择下半画面最近的有效 FOD，"
+      "以 0.6 m/s 靠近；无目标时停车等待。完成穿越后停清扫、收杆，自动倒退 1.5 米复查。"
+      "请留出车后空间；停止或完成后保持停车。"), panel);
+  note->setWordWrap(true);
+  note->setStyleSheet(QStringLiteral("color:#d8b46a;font-size:10pt;padding:4px;"));
+  layout->addWidget(note);
+  return panel;
 }
 
 QWidget* MainWindow::buildPlaceholderPage(const QString& title, const QString& subtitle,
@@ -1038,7 +1146,7 @@ QWidget* MainWindow::buildLogPage()
       "现有 ROS 节点执行。</p>"
       "<ul><li>ROS master 或任何业务节点缺失时，界面仍会打开并显示离线状态。</li>"
       "<li>界面发布导航目标、取消 GoalID 和误差重置，但从不发布 <code>/cmd_vel</code>。</li>"
-      "<li>视觉行驶只调用 <code>/fod_navigation_mode/set_fod_enabled</code>；GPS 暂停、"
+      "<li>视觉行驶调用原 GPS 配合回收或独立相机回收服务；GPS 暂停、"
       "停车确认与恢复均由安全仲裁器完成。</li>"
       "<li>内嵌 RViz 的 2D Nav Goal 是局部地图目标；经纬度目标使用综合页输入框。</li>"
       "</ul>"));
@@ -1195,6 +1303,8 @@ void MainWindow::setupRosInterfaces()
       node_->subscribe("/move_base/status", 10, &MainWindow::navigationCallback, this);
   rabbit_status_subscriber_ = node_->subscribe(
       "/rabbitmq_bridge/status", 10, &MainWindow::rabbitStatusCallback, this);
+  platform_status_subscriber_ = node_->subscribe(
+      "/fod_platform/status", 10, &MainWindow::platformStatusCallback, this);
   remote_target_subscriber_ = node_->subscribe(
       "/rabbitmq_bridge/latest_target", 10, &MainWindow::remoteTargetCallback, this);
   camera_image_subscriber_ =
@@ -1343,6 +1453,7 @@ void MainWindow::shutdownRosInterfaces()
   scan_subscriber_.shutdown();
   navigation_subscriber_.shutdown();
   rabbit_status_subscriber_.shutdown();
+  platform_status_subscriber_.shutdown();
   remote_target_subscriber_.shutdown();
   camera_image_subscriber_.shutdown();
   debug_image_subscriber_.shutdown();
@@ -1439,6 +1550,14 @@ void MainWindow::navigationCallback(const actionlib_msgs::GoalStatusArray::Const
   telemetry_.navigation_received = true;
   telemetry_.navigation = *msg;
   telemetry_.navigation_received_at = ros::WallTime::now();
+}
+
+void MainWindow::platformStatusCallback(const std_msgs::String::ConstPtr& msg)
+{
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  telemetry_.platform_status_received = true;
+  telemetry_.platform_status = msg->data;
+  telemetry_.platform_status_received_at = ros::WallTime::now();
 }
 
 void MainWindow::rabbitStatusCallback(
@@ -1803,6 +1922,8 @@ void MainWindow::refreshUi()
               QStringLiteral("视觉模式可选"));
   else if (mode_age > kFreshModeSeconds)
     setStatus("mode", Health::Bad, QStringLiteral("状态超时"), ageText(mode_age));
+  else if (mode_status.sweep_cleanup_pending)
+    setStatus("mode", Health::Warning, QStringLiteral("机构收尾"), mode_status.sweep_status);
   else if (mode_state == QStringLiteral("GPS_ACTIVE"))
     setStatus("mode", Health::Good, QStringLiteral("导航"),
               mode_status.recovery_armed
@@ -1811,6 +1932,17 @@ void MainWindow::refreshUi()
                   : QStringLiteral("视觉待机"));
   else if (mode_state == QStringLiteral("FOD_ACTIVE"))
     setStatus("mode", Health::Warning, QStringLiteral("视觉"), QStringLiteral("导航休眠"));
+  else if (mode_state == QStringLiteral("FOD_VERIFY"))
+    setStatus("mode", Health::Warning, QStringLiteral("倒退复查"), mode_status.reason);
+  else if (mode_state == QStringLiteral("FOD_COMPLETE_STOP") &&
+           !mode_status.verification.value(QStringLiteral("result")).toString().isEmpty())
+  {
+    const QString result = mode_status.verification.value(QStringLiteral("result")).toString();
+    setStatus("mode", result == QStringLiteral("PASSED") ? Health::Good : Health::Warning,
+              result == QStringLiteral("PASSED") ? QStringLiteral("复查通过") :
+              result == QStringLiteral("FOD_REMAINS") ? QStringLiteral("仍有残留") : QStringLiteral("未判定"),
+              mode_status.reason);
+  }
   else if (mode_state == QStringLiteral("FOD_ABORTED") ||
            mode_state == QStringLiteral("FAULT_STOP"))
     setStatus("mode", Health::Bad, QStringLiteral("停车"), modeDisplayName(mode_state));
@@ -1837,6 +1969,47 @@ void MainWindow::refreshUi()
               QStringLiteral("%1 ms").arg(data.detections.inference_ms, 0, 'f', 1));
 
   const double rabbit_age = wallAge(data.rabbit_status_received_at);
+  const QJsonObject platform = QJsonDocument::fromJson(
+      QByteArray::fromStdString(data.platform_status)).object();
+  const bool platform_fresh = data.platform_status_received && wallAge(data.platform_status_received_at) <= 5.0;
+  const QJsonObject task = platform.value("task").toObject();
+  const QString task_state = task.value("state").toString();
+  const std::map<QString, QString> task_labels = {
+    {"QUEUED", QStringLiteral("等待执行")}, {"RUNNING", QStringLiteral("执行中")},
+    {"COMPLETED", QStringLiteral("流程完成")}, {"FAILED", QStringLiteral("执行失败")},
+    {"CANCELED", QStringLiteral("已取消")}, {"CANCELING", QStringLiteral("停车收尾中")},
+    {"INTERRUPTED", QStringLiteral("已中断")}
+  };
+  const auto task_label = task_labels.find(task_state);
+  values_["platform_connection"]->setText(
+      QStringLiteral("%1 · 自动执行%2").arg(!platform_fresh ? QStringLiteral("未连接或状态过期") :
+          platform.value("connected").toBool() ? QStringLiteral("已连接") : QStringLiteral("正在连接"))
+          .arg(platform.value("remote_execution").toBool() ? QStringLiteral("已开启") : QStringLiteral("未开启")));
+  const bool gps_reporting = platform.value("position_publishing").toBool();
+  values_["platform_counts"]->setText(QStringLiteral("已上报 %1 条 · 收到 %2 条 · %3")
+      .arg(platform.value("published_count").toInt()).arg(platform.value("received_count").toInt())
+      .arg(!platform_fresh ? QStringLiteral("等待通信状态") : gps_reporting ? QStringLiteral("位置上报中") :
+           platform.value("gps_available").toBool() ? QStringLiteral("上报暂停") : QStringLiteral("等待有效实时 GPS")));
+  values_["platform_mission"]->setText(task.value("mission_id").toString(QStringLiteral("暂无任务")));
+  values_["platform_progress"]->setText(QStringLiteral("%1 · 第 %2 / %3 点 · 等待 %4 个任务")
+      .arg(task_label == task_labels.end() ? QStringLiteral("待任务") : task_label->second)
+      .arg(task.value("point_index").toInt()).arg(task.value("point_count").toInt()).arg(task.value("pending_count").toInt()));
+  values_["platform_reason"]->setText(task.value("reason").toString(QStringLiteral("等待远端任务")));
+  values_["platform_received"]->setText(platform.value("last_received").toObject().value("task_handling").toString(QStringLiteral("暂无")));
+  QStringList platform_rows;
+  int platform_index = 0;
+  for (const QJsonValue& value : task.value("points").toArray())
+  {
+    const QJsonObject point = value.toObject();
+    platform_rows << QStringLiteral("%1  纬度 %2  经度 %3  · %4")
+        .arg(++platform_index).arg(point.value("latitude").toDouble(), 0, 'f', 8)
+        .arg(point.value("longitude").toDouble(), 0, 'f', 8)
+        .arg(task.value("recovery").toBool() ? QStringLiteral("导航并回收") : QStringLiteral("GPS 导航"));
+  }
+  const QString platform_text = platform_rows.join('\n');
+  if (platform_points_->toPlainText() != platform_text)
+    platform_points_->setPlainText(platform_text);
+  platform_cancel_->setEnabled(platform_fresh && (task.value("active").toBool() || task.value("pending_count").toInt() > 0));
   if (!data.rabbit_status_received)
     setStatus("rabbit", Health::Idle, QStringLiteral("未启动"), QStringLiteral("可选节点"));
   else if (rabbit_age > 5.0)
@@ -1998,7 +2171,7 @@ void MainWindow::refreshUi()
   values_["vision_selected_target"]->setText(selected_target);
   QString recovery_hint = mode_status.reason.isEmpty() ? QStringLiteral("--") : mode_status.reason;
   if (mode_status.state == QStringLiteral("FOD_COMPLETE_STOP"))
-    recovery_hint = QStringLiteral("本次回收行程已完成并停车，请核实实物是否收进；点击“恢复导航”后再开始下一次。");
+    recovery_hint = QStringLiteral("本次回收行程已完成并停车，请核实实物是否收进；可直接发送下一 GPS 目标，或点击“恢复导航”继续旧路线。");
   if (mode_status.recovery_armed)
   {
     const QString distance = mode_status.final_goal_distance_m < 0.0
@@ -2009,14 +2182,14 @@ void MainWindow::refreshUi()
     recovery_hint = distance + (mode_status.fod_target_available
         ? QStringLiteral("；已发现有效 FOD") : QStringLiteral("；等待有效 FOD")) +
         (mode_status.recovery_sweep_ready
-             ? QStringLiteral("；清扫已启动，继续 GPS 导航回收")
+             ? QStringLiteral("；清扫已启动、液压指令已应答，继续 GPS 导航回收")
              : (mode_status.sweep_start_requested
-                    ? QStringLiteral("；清扫尚未确认：") + mode_status.sweep_status +
+                    ? QStringLiteral("；清扫与液压联动尚未确认：") + mode_status.sweep_status +
                           QStringLiteral("；GPS 导航继续")
-                    : QStringLiteral("；进入小于 %1 米范围即启动清扫，当前继续 GPS 导航")
+                    : QStringLiteral("；进入小于 %1 米范围即升杆 3 秒并启动清扫，当前继续 GPS 导航")
                           .arg(mode_status.recovery_radius_m, 0, 'f', 1)));
   }
-  if (mode_status.gps_fallback_enabled)
+  if (mode_status.gps_fallback_enabled && mode_status.state != QStringLiteral("FOD_VERIFY"))
   {
     recovery_hint += QStringLiteral("；") + mode_status.fod_gps_reason;
     if (!mode_status.fod_gps_point.isEmpty())
@@ -2025,7 +2198,22 @@ void MainWindow::refreshUi()
           .arg(mode_status.fod_gps_point.value(QStringLiteral("fod_latitude")).toDouble(), 0, 'f', 8)
           .arg(mode_status.fod_gps_point.value(QStringLiteral("fod_longitude")).toDouble(), 0, 'f', 8);
   }
+  const QString verification_phase = mode_status.verification.value(QStringLiteral("phase")).toString();
+  if (!verification_phase.isEmpty() && verification_phase != QStringLiteral("IDLE"))
+    recovery_hint = QStringLiteral("垃圾回收判定：%1；已倒退 %2 m；最长稳定检测 %3 s；%4")
+        .arg(verification_phase)
+        .arg(mode_status.verification.value(QStringLiteral("reverse_progress_m")).toDouble(), 0, 'f', 2)
+        .arg(mode_status.verification.value(QStringLiteral("max_stable_sec")).toDouble(), 0, 'f', 2)
+        .arg(mode_status.verification.value(QStringLiteral("reason")).toString());
+  if (mode_status.sweep_cleanup_pending)
+    recovery_hint += QStringLiteral("；清扫电机关闭／液压收杆尚未全部确认：") + mode_status.sweep_status;
   values_["vision_mode_reason"]->setText(recovery_hint);
+  const QString direct_status = !mode_status.direct_recovery_supported
+      ? QStringLiteral("等待独立回收模块")
+      : (mode_status.direct_recovery ? mode_name + QStringLiteral(" · ") + recovery_hint
+                                     : QStringLiteral("待命 · 无需 GPS 目标"));
+  values_["overview_direct_status"]->setText(direct_status);
+  values_["vision_direct_status"]->setText(direct_status);
 
   const DiagnosticSnapshot& quality = data.image_quality_diagnostic;
   const double quality_age = wallAge(quality.received_at);
@@ -2184,11 +2372,11 @@ void MainWindow::refreshUi()
   const bool can_start_fod = master_online_ && ros_interfaces_ready_ && mode_is_fresh &&
                              mode_state == QStringLiteral("GPS_ACTIVE") &&
                              !mode_status.recovery_armed &&
-                             (mode_status.retain_gps_route || visual_inputs_ready) && !mode_request_pending_;
+                             (mode_status.retain_gps_route || visual_inputs_ready) && !mode_request_pending_ && !direct_stop_pending_;
   const bool can_stop_fod = master_online_ && ros_interfaces_ready_ &&
                             mode_is_available &&
                             (mode_state != QStringLiteral("GPS_ACTIVE") || mode_status.recovery_armed) &&
-                            !mode_request_pending_;
+                            !mode_request_pending_ && !direct_stop_pending_;
   for (QPushButton* button : { overview_fod_start_button_, fod_start_button_ })
   {
     if (!button)
@@ -2196,13 +2384,26 @@ void MainWindow::refreshUi()
     button->setEnabled(can_start_fod);
     button->setToolTip(
         can_start_fod
-            ? QStringLiteral("开启后，小于 %1 米即启动清扫并等待目标；有有效 FOD 再切入视觉伺服")
+            ? QStringLiteral("小于 %1 米即升杆 3 秒并启动清扫、等待目标，有有效 FOD 再切入视觉伺服")
                   .arg(mode_status.recovery_radius_m, 0, 'f', 1)
             : QStringLiteral("需要导航模式就绪；已开启回收时可点击取消"));
   }
   for (QPushButton* button : { overview_fod_stop_button_, fod_stop_button_ })
     if (button)
       button->setEnabled(can_stop_fod);
+
+  const bool direct_available = master_online_ && ros_interfaces_ready_ && mode_is_fresh &&
+                                mode_status.direct_recovery_supported;
+  const bool direct_restart = mode_status.direct_recovery &&
+      (mode_state == QStringLiteral("FOD_COMPLETE_STOP") || mode_state == QStringLiteral("FOD_ABORTED"));
+  for (QPushButton* button : { overview_direct_start_button_, direct_start_button_ })
+    if (button)
+      button->setEnabled(direct_available && !mode_request_pending_ && !direct_stop_pending_ &&
+                         !mode_status.recovery_armed &&
+                         (mode_state == QStringLiteral("GPS_ACTIVE") || direct_restart));
+  for (QPushButton* button : { overview_direct_stop_button_, direct_stop_button_ })
+    if (button)
+      button->setEnabled(direct_available && mode_status.direct_recovery && !direct_stop_pending_);
 
   const bool camera_controls_available = master_online_ && ros_interfaces_ready_ &&
                                          !camera_request_pending_;
@@ -2226,6 +2427,8 @@ bool MainWindow::gpsGoalReady(const TelemetrySnapshot& data, QString* reason) co
   };
   if (!master_online_ || !ros_interfaces_ready_)
     return reject(QStringLiteral("ROS 未连接"));
+  if (mode_request_pending_)
+    return reject(QStringLiteral("正在切换控制模式"));
   if (!has_origin_ || !std::isfinite(origin_latitude_) || !std::isfinite(origin_longitude_))
     return reject(QStringLiteral("GPS 原点未设置"));
   if (!data.odom_received || wallAge(data.odom_received_at) > 2.0)
@@ -2246,7 +2449,7 @@ bool MainWindow::gpsGoalReady(const TelemetrySnapshot& data, QString* reason) co
                                                   : wallAge(data.mode_state_received_at);
     if (age > kFreshModeSeconds)
       return reject(QStringLiteral("控制模式状态超时"));
-    if (state != QStringLiteral("GPS_ACTIVE"))
+    if (state != QStringLiteral("GPS_ACTIVE") && state != QStringLiteral("FOD_COMPLETE_STOP"))
       return reject(QStringLiteral("GPS 正在休眠，暂不接收新目标"));
   }
   if (reason)
@@ -2257,19 +2460,64 @@ bool MainWindow::gpsGoalReady(const TelemetrySnapshot& data, QString* reason) co
 void MainWindow::publishGpsGoal(double latitude, double longitude, double altitude,
                                 const QString& source_description)
 {
-  sensor_msgs::NavSatFix goal;
-  goal.header.stamp = ros::Time::now();
-  goal.header.frame_id = "gps";
-  goal.status.status = sensor_msgs::NavSatStatus::STATUS_FIX;
-  goal.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
-  goal.latitude = latitude;
-  goal.longitude = longitude;
-  goal.altitude = std::isfinite(altitude) ? altitude : 0.0;
-  goal_publisher_.publish(goal);
-  appendEvent(QStringLiteral("已发布%1：lat=%2 lon=%3")
-                  .arg(source_description)
-                  .arg(goal.latitude, 0, 'f', 10)
-                  .arg(goal.longitude, 0, 'f', 10));
+  const auto publish_goal = [this, latitude, longitude, altitude, source_description]() {
+    sensor_msgs::NavSatFix goal;
+    goal.header.stamp = ros::Time::now();
+    goal.header.frame_id = "gps";
+    goal.status.status = sensor_msgs::NavSatStatus::STATUS_FIX;
+    goal.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
+    goal.latitude = latitude;
+    goal.longitude = longitude;
+    goal.altitude = std::isfinite(altitude) ? altitude : 0.0;
+    goal_publisher_.publish(goal);
+    appendEvent(QStringLiteral("已发布%1：lat=%2 lon=%3")
+                    .arg(source_description)
+                    .arg(goal.latitude, 0, 'f', 10)
+                    .arg(goal.longitude, 0, 'f', 10));
+  };
+  const TelemetrySnapshot data = snapshot();
+  const ModeStatusView mode = data.mode_status_received
+                                 ? parseModeStatus(data.mode_status) : ModeStatusView();
+  const QString state = mode.valid && !mode.state.isEmpty()
+                            ? mode.state : QString::fromStdString(data.mode_state);
+  if (state != QStringLiteral("FOD_COMPLETE_STOP"))
+  {
+    publish_goal();
+    return;
+  }
+
+  // An explicit new target replaces the retained route. Resuming that route
+  // first could send the vehicle towards the previous FOD before this goal.
+  mode_request_pending_ = true;
+  appendEvent(QStringLiteral("结束上一轮回收，准备发送新的 GPS 目标……"));
+  auto* watcher = new QFutureWatcher<QString>(this);
+  connect(watcher, &QFutureWatcher<QString>::finished, this,
+          [this, watcher, publish_goal]() {
+    const QString result = watcher->result();
+    const bool success = result.startsWith(QStringLiteral("OK|"));
+    mode_request_pending_ = false;
+    if (success)
+      publish_goal();
+    else
+    {
+      const QString message = result.section('|', 1, -1);
+      appendEvent(QStringLiteral("新 GPS 目标尚未发送：") + message, true);
+      QMessageBox::warning(this, QStringLiteral("恢复导航未完成"), message);
+    }
+    watcher->deleteLater();
+  });
+  watcher->setFuture(QtConcurrent::run([]() {
+    ros::NodeHandle node;
+    ros::ServiceClient client = node.serviceClient<std_srvs::Trigger>(
+        "/fod_navigation_mode/prepare_gps_goal", false);
+    if (!client.waitForExistence(ros::Duration(1.0)))
+      return QStringLiteral("ERR|新目标切换服务尚未启动");
+    std_srvs::Trigger call;
+    if (!client.call(call))
+      return QStringLiteral("ERR|新目标切换服务调用失败");
+    return QString(call.response.success ? QStringLiteral("OK|") : QStringLiteral("ERR|")) +
+           QString::fromStdString(call.response.message);
+  }));
 }
 
 void MainWindow::sendForwardGoal()
@@ -2492,16 +2740,16 @@ void MainWindow::startFodMode()
 
   const QMessageBox::StandardButton answer = QMessageBox::question(
       this, QStringLiteral("确认启动相机控制回收"),
-      mode_status.retain_gps_route
+      QStringLiteral("回收结束后自动倒退 1.5 米，停车复查 2 秒。请留出车后空间。\n\n") + (mode_status.retain_gps_route
           ? QStringLiteral("开启后继续 GPS 导航；距最终目标小于 %1 米即升出液压杆 3 秒并启动清扫。"
                            "6 米内稳定最近 FOD 将记录 GPS 位置；可见时以 0.6 m/s 视觉靠近，"
                            "丢失后导航到记录 FOD 前方 0.8 米终点。没有有效 FOD 时继续原 GPS 导航。"
                            "到达或回收完成后，停止清扫并回收液压杆 3 秒。"
                            "请确认现场具备运行条件并保持物理急停可用。\n\n是否开启？")
                 .arg(mode_status.recovery_radius_m, 0, 'f', 1)
-          : QStringLiteral("室内模式将暂停导航、确认停车，联动升出液压杆 3 秒并启动清扫，"
+          : QStringLiteral("室内模式将暂停导航、确认停车，升出液压杆 3 秒并启动清扫，"
                            "随后切入 0.6 m/s 视觉回收。完成后停止清扫并回收液压杆 3 秒。"
-                           "请确认现场具备运行条件并保持物理急停可用。\n\n是否启动？"),
+                           "请确认现场具备运行条件并保持物理急停可用。\n\n是否启动？")),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (answer != QMessageBox::Yes)
     return;
@@ -2525,27 +2773,37 @@ void MainWindow::stopFodMode()
   requestFodMode(false);
 }
 
-void MainWindow::requestFodMode(bool enabled)
+void MainWindow::requestFodMode(bool enabled, bool direct)
 {
-  if (!master_online_ || !ros_interfaces_ready_ || mode_request_pending_)
+  if (!master_online_ || !ros_interfaces_ready_ || direct_stop_pending_ ||
+      (mode_request_pending_ && !(direct && !enabled)))
     return;
-  mode_request_pending_ = true;
+  if (direct && !enabled)
+    direct_stop_pending_ = true;
+  else
+    mode_request_pending_ = true;
   for (QPushButton* button : { overview_fod_start_button_, fod_start_button_,
-                               overview_fod_stop_button_, fod_stop_button_ })
+                               overview_fod_stop_button_, fod_stop_button_,
+                               overview_direct_start_button_, direct_start_button_ })
     if (button)
       button->setEnabled(false);
-  appendEvent(enabled ? QStringLiteral("正在开启相机回收；联动升出液压杆 3 秒和启动清扫……")
+  appendEvent(direct ? (enabled ? QStringLiteral("正在启动独立相机回收：暂停路径、升杆并启动清扫……")
+                               : QStringLiteral("正在停止独立回收、停清扫并收杆，保持停车……"))
+                    : enabled ? QStringLiteral("正在开启相机回收；进入范围后升杆 3 秒并启动清扫……")
                       : QStringLiteral("正在请求退出视觉模式并恢复导航……"),
               enabled);
 
   auto* watcher = new QFutureWatcher<QString>(this);
   connect(watcher, &QFutureWatcher<QString>::finished, this,
-          [this, watcher, enabled]() {
+          [this, watcher, enabled, direct]() {
             const QString result = watcher->result();
             const bool success = result.startsWith(QStringLiteral("OK|"));
             const QString message = result.section('|', 1, -1);
-            mode_request_pending_ = false;
-            appendEvent((enabled ? QStringLiteral("相机回收请求")
+            if (direct && !enabled)
+              direct_stop_pending_ = false;
+            else
+              mode_request_pending_ = false;
+            appendEvent((direct ? QStringLiteral("独立相机回收") : enabled ? QStringLiteral("相机回收请求")
                                  : QStringLiteral("恢复路径导航")) +
                             QStringLiteral("：") + message,
                         !success);
@@ -2553,10 +2811,19 @@ void MainWindow::requestFodMode(bool enabled)
               QMessageBox::warning(this, QStringLiteral("模式切换未完成"), message);
             watcher->deleteLater();
           });
-  watcher->setFuture(QtConcurrent::run([enabled]() {
+  watcher->setFuture(QtConcurrent::run([enabled, direct]() {
     ros::NodeHandle node;
+    if (enabled && !direct)
+    {
+      ros::ServiceClient verification_client = node.serviceClient<std_srvs::SetBool>(
+          "/fod_navigation_mode/set_verification_enabled", false);
+      std_srvs::SetBool setting;
+      setting.request.data = true;
+      if (!verification_client.call(setting) || !setting.response.success)
+        return QStringLiteral("ERR|回收后倒退复查启用失败：") + QString::fromStdString(setting.response.message);
+    }
     ros::ServiceClient client =
-        node.serviceClient<std_srvs::SetBool>(kFodModeService, false);
+        node.serviceClient<std_srvs::SetBool>(direct ? kDirectFodModeService : kFodModeService, false);
     if (!client.waitForExistence(ros::Duration(1.0)))
       return QStringLiteral("ERR|安全模式仲裁服务未启动；请使用完整 GPS bringup");
     std_srvs::SetBool call;

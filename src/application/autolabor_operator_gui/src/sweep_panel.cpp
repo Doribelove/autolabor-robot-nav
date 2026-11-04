@@ -106,7 +106,7 @@ SweepPanel::SweepPanel(const QString& script, QWidget* parent)
   root->addWidget(hydraulic);
   auto* note = new QLabel(QStringLiteral(
       "本页显示时每 5 秒刷新状态。操作完成后以设备回读为准。\n"
-      "使用本页前请退出命令行清扫测试。关闭窗口不会关闭清扫装置，停机请点击“停止清扫”。"), this);
+      "自动回收会联动启动清扫和升杆 3 秒，完成或取消时停止清扫并收杆 3 秒。本页按钮仍可独立手动操作。未参与自动回收的手动电机不会随窗口关闭而停止。"), this);
   note->setWordWrap(true);
   note->setStyleSheet(QStringLiteral("color:#9cafc4;font-size:11pt;"));
   root->addWidget(note);

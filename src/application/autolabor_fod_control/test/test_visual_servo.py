@@ -125,6 +125,38 @@ class PixelControllerTest(unittest.TestCase):
 
 
 class AcquisitionCaptureRangeTest(unittest.TestCase):
+    def test_zed_lower_half_acquires_ground_targets_and_excludes_upper_half(self):
+        from roslaunch.config import ROSLaunchConfig
+        from roslaunch.xmlloader import XmlLoader
+        config = ROSLaunchConfig()
+        XmlLoader().load(str(LAUNCH_PATH), config, argv=['camera_driver:=zed'], verbose=False)
+        param = lambda key: config.params['/fod_visual_servo/' + key].value
+        node = self.make_node()
+        node.min_acquire_anchor_v_fraction = param('min_acquire_anchor_v_fraction')
+        node.max_acquire_anchor_v_fraction = param('max_acquire_anchor_v_fraction')
+        node.machine_config = TargetMachineConfig(
+            roi_top_fraction=param('roi_top_fraction'),
+            roi_bottom_fraction=param('roi_bottom_fraction'),
+            recovery_region_top_fraction=param('recovery_region_top_fraction'),
+            select_nearest_by_depth=True)
+        for fraction in (.05, .15, .49, .51, .75, .98):
+            with self.subTest(fraction=fraction):
+                v = fraction * 719
+                d = PixelDetection(0, 'Metal', .8, 610, v-20, 20, 20,
+                                   TARGET_U, v, track_id=1, depth_valid=True,
+                                   depth_m=1., range_m=1.1)
+                frame = SimpleNamespace(candidates=(d,), width=1280, height=720)
+                candidates, reason = node._acquisition_candidates(frame)
+                if fraction >= .5:
+                    self.assertEqual(candidates, (d,))
+                    self.assertEqual(reason, '')
+                else:
+                    self.assertEqual(candidates, ())
+                    self.assertTrue(reason)
+        _, top, _, bottom = node.machine_config.recovery_region(1280, 720, TARGET_U)
+        self.assertAlmostEqual(top, 359.5)
+        self.assertAlmostEqual(bottom, 719.)
+
     @staticmethod
     def make_node():
         node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
@@ -950,6 +982,27 @@ class TerminalSensorFenceTest(unittest.TestCase):
 
 
 class NearestSingleTargetTest(unittest.TestCase):
+    def test_full_frame_tracks_below_old_mask_then_crosses_once_after_loss(self):
+        def at(v):
+            return replace(self.near, y=v-25, height=25, anchor_v=v)
+        for stamp in (1., 1.05):
+            result = self.machine.process_frame([at(300)], 1280, 720, TARGET_U, 0., stamp)
+        self.assertEqual(result.state, APPROACH)
+        self.assertFalse(self.machine.recovery_ready)
+        for i, v in enumerate((370, 460, 550, 650, 710)):
+            result = self.machine.process_frame([at(v)], 1280, 720, TARGET_U, 0., 1.1+i*.05)
+            self.assertEqual(result.state, APPROACH)
+            self.assertEqual(result.target.track_id, self.near.track_id)
+            self.assertFalse(result.enter_blind_advance)
+        self.assertTrue(self.machine.recovery_ready)
+        result = self.machine.process_frame([], 1280, 720, TARGET_U, 0., 1.4)
+        self.assertEqual(result.state, BLIND_ADVANCE)
+        self.assertTrue(result.enter_blind_advance)
+        loss_stamp = self.machine.loss_started_stamp
+        result = self.machine.process_frame([self.other], 1280, 720, TARGET_U, .1, 1.45)
+        self.assertEqual(result.state, BLIND_ADVANCE)
+        self.assertEqual(self.machine.loss_started_stamp, loss_stamp)
+
     def test_ros_detection_callback_passes_depth_and_ids_to_selector(self):
         from collections import deque
         from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
@@ -973,7 +1026,8 @@ class NearestSingleTargetTest(unittest.TestCase):
             message.image_height=HEIGHT
             message.model_sha256='a'*64
             message.model_task='detect'
-            for d in (self.far,self.near,self.other):
+            distant = replace(self.far, track_id=99, depth_m=12.0, range_m=12.1)
+            for d in (self.far,self.near,self.other,distant):
                 item=FodDetection()
                 item.class_name=d.class_name
                 item.confidence=d.confidence
@@ -991,6 +1045,8 @@ class NearestSingleTargetTest(unittest.TestCase):
             node._detection_cb(message)
             frame=node.detection_queue[-1]
             self.assertEqual(frame.error,'')
+            self.assertNotIn(99, [d.track_id for d in frame.observations])
+            self.assertNotIn(99, [d.track_id for d in frame.candidates])
             decision=self.step(frame.candidates,stamp)
         self.assertTrue(decision.acquired)
         self.assertEqual(decision.target.track_id,2)
@@ -1026,6 +1082,47 @@ class NearestSingleTargetTest(unittest.TestCase):
             self.assertEqual(decision.state,ACQUIRE)
             self.assertFalse(decision.acquired)
         self.assertIn('depth',decision.reason)
+
+    def test_far_only_frames_never_acquire_even_with_high_confidence(self):
+        for depth, distance in ((10.001, 10.001), (9.9, 10.001), (30., 30.)):
+            with self.subTest(depth=depth, distance=distance):
+                self.machine.reset()
+                distant = replace(self.near, confidence=1., depth_m=depth, range_m=distance)
+                for i in range(8):
+                    decision = self.step([distant], 1+i*.03)
+                    self.assertEqual(decision.state, ACQUIRE)
+                    self.assertIsNone(decision.target)
+                    self.assertFalse(decision.acquired)
+                    self.assertFalse(decision.fault)
+
+    def test_exactly_ten_metres_is_eligible(self):
+        boundary = replace(self.near, depth_m=10., range_m=10.)
+        distant = replace(self.other, depth_m=10.01, range_m=10.01)
+        self.step([distant, boundary])
+        decision = self.step([boundary, distant], 1.03)
+        self.assertTrue(decision.acquired)
+        self.assertEqual(decision.target, boundary)
+
+    def test_pending_target_cannot_finish_acquisition_with_far_depth(self):
+        self.step([self.near])
+        distant = replace(self.near, depth_m=15., range_m=15.)
+        self.assertFalse(self.step([distant], 1.03).acquired)
+        self.assertFalse(self.step([self.near], 1.06).acquired)
+        self.assertTrue(self.step([self.near], 1.09).acquired)
+
+    def test_locked_identity_with_far_depth_is_not_a_pixel_fallback(self):
+        self.near = replace(self.near, y=.3*(HEIGHT-1)-self.near.height,
+                            anchor_v=.3*(HEIGHT-1))
+        self.acquire()
+        distant = replace(self.near, depth_m=12., range_m=12.)
+        self.assertEqual(self.machine.target_candidates([distant]), ())
+        decision = self.step([distant], 1.06)
+        self.assertEqual(decision.target, self.near)
+        self.assertFalse(self.machine.recovery_ready)
+        decision = self.step([distant], 1.5)
+        self.assertEqual(decision.state, TRACK_WAIT)
+        self.assertEqual(decision.target.range_m, self.near.range_m)
+        self.assertFalse(decision.fault)
 
     def test_depth_dropout_of_locked_target_does_not_retarget(self):
         self.acquire()

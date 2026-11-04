@@ -18,7 +18,10 @@ CameraInfo，向每个真实检测框附加 `track_id`、`depth_valid`、`depth_
 ZED 相机回收每次只选择最近的一个有效目标，锁定后不因其他目标的距离或
 置信度变化而切换，完成后停车。启动和测距说明见工作区 `ZED_PERFORMANCE.md`。
 `FodDetection` 消息增加字段后需重新生成消息并重编译 Qt，本机已按此部署；
-模型、类别和原 ROI 不变。
+模型类别保持不变。2026-11-03 按新相机安装位置改为 1280×720 全幅识别，
+不再裁掉上下区域；新 TensorRT 输入为 544×960，等比例缩放并填充，不拉伸图像。
+检测、深度取样和 CameraInfo 仍使用完整原图坐标。配置路径沿用
+`config/fod_zed_ground_roi.yaml`，其 top/bottom 当前为 0/1。
 
 ## 重要边界
 

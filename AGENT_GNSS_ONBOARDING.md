@@ -2,7 +2,7 @@
 
 Jetson 本机迁移后的启动命令与环境见 [AGX_STARTUP.md](AGX_STARTUP.md)，实际验证结果见 [AGX_MIGRATION_REPORT.md](AGX_MIGRATION_REPORT.md)。
 
-速度配置更新日期：2026-09-29。工作区：`/home/slam/robot_ws_agx`；ROS Noetic / catkin；车辆：Autolabor M2 阿克曼底盘。当前相机回收操作与完整配置以 [AGX_STARTUP.md](AGX_STARTUP.md) 为准。
+速度配置更新日期：2026-10-14。工作区：`/home/slam/robot_ws_agx`；ROS Noetic / catkin；车辆：Autolabor M2 阿克曼底盘。当前相机回收操作与完整配置以 [AGX_STARTUP.md](AGX_STARTUP.md) 为准。
 
 本文面向第一次接手此仓库的 agent 和操作员，依据当前工作区脚本、launch、配置与源码整理。范围是双天线 GNSS 定位导航及现有完整操作台，不展开 FAST_LIO 定位模式。
 
@@ -35,10 +35,10 @@ cd /home/slam/robot_ws_agx
 
 ```bash
 cd /home/slam/robot_ws_agx
-./scripts/operator_all_in_one.sh 1.6 cruise
+./scripts/operator_all_in_one.sh 1.8 cruise
 ```
 
-`1.6` 是前进规划速度上限，单位 m/s；`cruise` 是开阔道路配置。这也是一体化入口不传参数时的现有默认值。用户指定速度或场景时使用其指定值，例如 `./scripts/operator_all_in_one.sh 0.5 cruise`；参数不是要求车立即以此速度行驶。
+`1.8` 是请求的前进规划速度上限，单位 m/s；`cruise` 是开阔道路配置。这也是一体化入口不传参数时的现有默认值。用户指定速度或场景时使用其指定值，例如 `./scripts/operator_all_in_one.sh 0.5 cruise`；参数不是要求车立即以此速度行驶。
 
 该入口的当前行为是：
 
@@ -61,19 +61,19 @@ cd /home/slam/robot_ws_agx
 
 ```bash
 cd /home/slam/robot_ws_agx
-./scripts/bringup.sh gps 1.6 cruise
+./scripts/bringup.sh gps 1.8 cruise
 ```
 
-两个入口的默认速度均为 1.6 m/s：
+两个入口的默认速度均为 1.8 m/s：
 
 | 入口 | 不指定速度时 | 默认显示方式 |
 | --- | --- | --- |
-| `./scripts/bringup.sh gps` | `1.6 m/s`，`cruise` | 独立 RViz |
-| `./scripts/operator_all_in_one.sh` | `1.6 m/s`，`cruise` | Qt 内嵌 RViz |
+| `./scripts/bringup.sh gps` | `1.8 m/s`，`cruise` | 独立 RViz |
+| `./scripts/operator_all_in_one.sh` | `1.8 m/s`，`cruise` | Qt 内嵌 RViz |
 
-`cruise` 面向开阔道路、长直段；`obstacle` 面向密集静态障碍。实际前进/倒车上限还受底盘上报的 `max_speed` 约束；倒车配置默认跟随前进默认值，当前为 `1.6 m/s`。显式设置 `GPS_NAV_MAX_VEL_X_BACKWARDS` 可保留较低倒车上限，位置参数仍会将其限制在所请求的速度以内。`cruise` 的纵向/转向规划加速度为 `3.0 m/s²` / `1.2 rad/s²`，两个场景均允许倒车初始化并降低前进偏好。
+`cruise` 面向开阔道路、长直段；`obstacle` 面向密集静态障碍。实际前进/倒车上限还受底盘上报的 `max_speed` 约束；倒车配置默认跟随前进默认值，当前为 `1.8 m/s`。显式设置 `GPS_NAV_MAX_VEL_X_BACKWARDS` 可保留较低倒车上限，位置参数仍会将其限制在所请求的速度以内。`cruise` 的纵向/转向规划加速度为 `3.0 m/s²` / `1.2 rad/s²`，两个场景均允许倒车初始化并降低前进偏好。
 
-导航已运行，仅需添加操作台时，另开终端运行 `./scripts/operator_gui.sh`。该脚本只启动 Qt 和默认 GPS 静态误差监视器，不重复启动导航。独立组合可预先用 `NAV_START_RVIZ=false ./scripts/bringup.sh gps 1.6 cruise` 避免两个 RViz。
+导航已运行，仅需添加操作台时，另开终端运行 `./scripts/operator_gui.sh`。该脚本只启动 Qt 和默认 GPS 静态误差监视器，不重复启动导航。独立组合可预先用 `NAV_START_RVIZ=false ./scripts/bringup.sh gps 1.8 cruise` 避免两个 RViz。
 
 不要同时运行两个导航入口。`bringup.sh` 的现有 `CLEAN_START=true` 会清理其管理的旧导航节点，重复启动会影响正在运行的会话。
 
@@ -105,7 +105,7 @@ USB 插拔后编号可能变化，应根据实际设备身份映射 CAN 和 GNSS
 
 ```bash
 CAN_PORT=/dev/ttyUSB0 GPS_PORT=/dev/ttyUSB1 GPS_BAUD_RATE=115200 \
-  ./scripts/operator_all_in_one.sh 1.6 cruise
+  ./scripts/operator_all_in_one.sh 1.8 cruise
 ```
 
 GNSS 的同一个串口流同时提供 GGA/RMC 经纬度和 `#UNIHEADINGA` 双天线航向。接收机应已有正确的输出配置，项目启动脚本负责读取；日常启动无需手输车头方向。运行期间不要用另一个串口读取程序争用该端口。
@@ -121,15 +121,15 @@ MID360 的主机地址必须实际配置在连接雷达的网卡上。设备未�
 | 1 | ROS 环境、旧节点清理、ROS master | 准备同一 ROS 图 |
 | 2 | `robot_bringup/can.launch` → `/canbus_driver`、`/m2_driver` | 检查 CAN 设备、启动底盘，等待 `/canbus_msg`，读取 `/m2_driver/chassis_parameter` 的速度上限；底盘 `publish_tf=false` |
 | 3 | `livox_mid360.launch` | 检查 GNSS 设备路径后启动 MID360，等待 `/livox/lidar`、`/livox/imu` |
-| 4 | `fast_lio.launch odom_pub_en:=false tf_pub_en:=false` → `/laserMapping` | 处理避障点云，等待 `/cloud_registered_body` |
-| 5 | `scan_fast_lio.launch` | 自车过滤、点云投影到 `/scan`；发布 `base_link → body` 静态 TF，z 为 `+0.6 m` |
+| 4 | `fast_lio.launch odom_pub_en:=false tf_pub_en:=false` → `/laserMapping` | 保留配准点云供诊断；GPS 避障不依赖其地图或积分速度 |
+| 5 | `scan_livox_direct.launch` → `scan_fast_lio.launch` | 原始 MID360 点云按实测底盘速度作单帧补偿、自车过滤、投影到 `/scan`；`base_link → body` 平移为 `(0.011, 0.02329, 0.60588) m` |
 | 6 | `gps_localization.launch` → `/gps_localization` | 等待底盘 `/odom` 后，读取 GNSS 位置和双天线航向，生成 `/gps/odom` 和 `camera_init → base_link` |
 | 7 | `gps_long_range_goal.launch` | 启动最终 GPS 目标到滚动 action 子目标的转换 |
 | 8 | `gps_visual_recovery_standby.launch` | 启动现有 GPS/FOD 模式管理器和处于 `DISABLED` 的视觉控制器；初始导航模式为 `GPS_ACTIVE` |
 | 9 | `navigation_arena.launch localization_source:=gps` | 加载 `dingo` 底盘配置、选定的 TEB 场景覆盖、目标指令中继，启动 `move_base` |
 | 10 | 原有 topic、TF、目标与速度路由检查 | 最终打印 `Robot bringup is running in gps mode.` |
 
-**此模式仍会出现 `/laserMapping` 进程，因为它提供避障点云。** 其定位里程计和 TF 输出已由入口关闭；车辆定位来自 GNSS。不要因为暂时不使用 FAST_LIO 定位，就删除该点云环节、等待 `/Odometry`，或改成双定位 TF 同时发布。
+**此模式仍保留 `/laserMapping` 进程供点云诊断。** 其定位里程计和 TF 输出已由入口关闭；车辆定位来自 GNSS，实际避障来自直接 MID360 点云链。不要等待 `/Odometry`，或改成双定位 TF 同时发布。
 
 FAST_LIO 进程的系统 libusb 路径由启动脚本单独处理，保留此环境隔离即可；无需修改海康 SDK 的全局库设置。
 
@@ -155,8 +155,14 @@ TF 主干为：
 
 ```text
 camera_init ── /gps_localization 动态发布 ──> base_link
-base_link   ── 静态 z=+0.6 m ─────────────> body
+base_link   ── 静态 (0.011, 0.02329, 0.60588) m ──> body
+body        ── 雷达内部 (-0.011, -0.02329, 0.04412) m ──> livox_frame
 ```
+
+2026-11-03 安装更新：上述两段相加后 MID360 测距中心位于 `base_link` 的
+`(0, 0, 0.65) m`，离地 0.90 m；`base_link` 为离地 0.25 m 的原 M2 底盘中心。
+整车实体外廓为前沿 +1.22 m、后沿 -0.52 m、左右 ±0.40 m，导航另加四周各
+0.10 m。ZED 左目、RX1 外参与厂商模型补偿详见 [安装参数](INSTALLATION_GEOMETRY.txt)。
 
 RViz Fixed Frame 使用 `camera_init`。在该 GNSS 流程里看到历史工具请求不存在的 `map → base_link`，应检查工具自身选用的坐标系；不要额外发布第二套定位 TF。
 
@@ -176,7 +182,8 @@ flowchart TD
 ```
 
 - 最终目标是 WGS84，经纬度通过 `/gps/goal_fix` 输入，不能混用其他地图坐标。默认由 `/gps_long_range_goal_manager` 转成 action 目标；无需再开旧 `gps_goal.launch`。同一话题可以有 rosbag 等被动订阅者，但两个项目目标转换器不能一起运行。
-- 长距离目标默认允许至 1000 m，子目标前视 15 m，距离中间目标约 5 m 时继续推进；最终目标进入前视范围后保留其精确位置。最终目标与中间子目标分别见 `/gps/long_range/final_goal` 和 `/gps/long_range/subgoal`。
+- 长距离目标默认允许至 1000 m，子目标前视 15 m，距离中间目标约 8 m 时继续推进，避免 6.5 m 的 cruise 局部轨迹先缩短再突变；最终目标进入前视范围后保留其精确位置。最终目标与中间子目标分别见 `/gps/long_range/final_goal` 和 `/gps/long_range/subgoal`。
+- `cruise` 使用 `autolabor_gps_keepout/NavfnROS`：只有整条直线及当前带 padding 的车体外接圆扫过的网格全部为 FREE_SPACE，才直接生成直线路径；障碍、禁区、未知网格、膨胀代价或地图边缘均回到原 Navfn。保留 `/move_base/NavfnROS/plan`、TEB 避障和速度控制链。此修正用于消除空闲斜向路段的 Navfn 弧形参考线，不把真实绕障或转弯路线拉直。
 - 全局代价地图为 `40 × 40 m`、分辨率 `0.1 m` 的滚动地图。`cruise` 局部地图为 `16 × 16 m`，TEB 前视 `6.5 m`；`obstacle` 为 `24 × 24 m`、前视 `10 m`。长距离靠滚动子目标推进，不要求扩大地图。
 - `move_base` 的 TEB 控制频率为 10 Hz；`cruise` 全局重规划频率参数为 0（新目标或规划失败仍会规划），`obstacle` 为 1 Hz。
 - TEB 使用 `/gps/odom` 反馈速度；`cmd_angle_instead_rotvel=false`。`Twist.angular.z` 是 rad/s 角速度，底盘驱动负责转换转向角，不应直接填角度。
@@ -220,7 +227,7 @@ Qt、相机、YOLO、RabbitMQ 都不是原 GNSS 导航的必需前置条件。�
 
 ```bash
 OPERATOR_START_VISION=false OPERATOR_START_RABBITMQ=false \
-  ./scripts/operator_all_in_one.sh 1.6 cruise
+  ./scripts/operator_all_in_one.sh 1.8 cruise
 ```
 
 已有相机时可设 `OPERATOR_START_CAMERA=false`，复用相机后继续启动 YOLO。不要在完整入口之外重复运行相机或桥接脚本。

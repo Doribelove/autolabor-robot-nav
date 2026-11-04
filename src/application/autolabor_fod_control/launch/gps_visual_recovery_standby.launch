@@ -36,6 +36,8 @@
         output="screen"
         respawn="false"
         required="true">
+    <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
+              param="vehicle_footprint"/>
     <param name="gps_cmd_topic" value="$(arg gps_cmd_topic)"/>
     <param name="fod_cmd_topic" value="$(arg fod_cmd_topic)"/>
     <param name="output_cmd_topic" value="$(arg output_cmd_topic)"/>
@@ -50,6 +52,7 @@
     <param name="recovery_radius_m" value="$(arg recovery_radius_m)"/>
     <param name="sweep_enabled" value="$(arg sweep_enabled)"/>
     <param name="sweep_auto_stop" value="$(arg sweep_auto_stop)"/>
+    <param name="verification_enabled" value="true"/>
     <param name="transition_timeout_sec"
            type="double"
            value="$(arg transition_timeout_sec)"/>

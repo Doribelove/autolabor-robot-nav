@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Non-motion route simulations and user input / clearance checks."""
 import math
+from itertools import product
 from pathlib import Path
 import sys
 import unittest
@@ -42,10 +43,10 @@ class GeometryTests(unittest.TestCase):
             [SQUARE,[(15,-3),(25,-3),(25,8),(15,8)]],
             [[(50,-30),(100,-30),(100,30),(50,30)]],
         ]
-        for polygons in cases:
-            with self.subTest(polygons=polygons):
+        for polygons, advance in product(cases, (5., 8.)):
+            with self.subTest(polygons=polygons, advance=advance):
                 g=KeepoutGeometry(polygons)
-                route=KeepoutGoalRoute(160.,0.,lookahead_distance=15.,advance_distance=5.,geometry=g)
+                route=KeepoutGoalRoute(160.,0.,lookahead_distance=15.,advance_distance=advance,geometry=g)
                 x,y=0.,0.
                 segment=route.next_segment(x,y)
                 for step in range(3000):

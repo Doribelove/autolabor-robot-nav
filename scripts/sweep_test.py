@@ -22,7 +22,7 @@ class DeviceError(RuntimeError):
 
 
 class SweepTester(SweepDeviceTCPClient):
-    """Reuse the supplied protocol; send each toggle or hydraulic pulse once."""
+    """Query before motor transitions; send each hydraulic pulse only once."""
 
     def __init__(self, ip, port=50003, timeout=2.0, settle=4.0):
         super().__init__(ip=ip, port=port, timeout=timeout)
@@ -32,6 +32,8 @@ class SweepTester(SweepDeviceTCPClient):
         self.hydraulic_acknowledged = False
         self.hydraulic_sent = False
         self.hydraulic_deadline = 0.0
+        self.motor_command_sent = False
+        self.motor_confirmed = False
 
     def _flush_pending(self, flush_timeout=0.5):
         # A fresh TCP session has no stale command replies. exchange() already
@@ -88,11 +90,14 @@ class SweepTester(SweepDeviceTCPClient):
                     raise
                 time.sleep(0.1)
 
-    def set_state(self, wanted):
+    def set_state(self, wanted, stable_for=0.0):
+        self.motor_confirmed = False
         before = self.status()
         self.previous_state = before
-        if self._request_state(wanted, before):
-            self._confirm_state(wanted)
+        changed = self._request_state(wanted, before)
+        if changed or stable_for:
+            self._confirm_state(wanted, stable_for)
+        self.motor_confirmed = True
 
     def _request_state(self, wanted, before):
         label = "开启" if wanted else "关闭"
@@ -101,25 +106,35 @@ class SweepTester(SweepDeviceTCPClient):
             return False
 
         print("[发送] {}清扫装置：只发送一次切换指令。".format("启动" if wanted else "停止"))
+        self.motor_command_sent = True
         try:
-            reply = self.exchange(self.cmd_switch, False)
+            reply = self.exchange(self.cmd_switch, False, ack_only=True)
             print("[应答] {}".format(reply))
         except DeviceError as error:
             print("[提示] 切换应答未确认：{}；继续查询实际状态，不重发切换。".format(error))
         return True
 
-    def _confirm_state(self, wanted):
+    def _confirm_state(self, wanted, stable_for=0.0):
         label = "开启" if wanted else "关闭"
         deadline = time.monotonic() + self.settle
         detail = "尚未收到目标状态"
+        matched_since = None
         while True:
             try:
                 actual = self.status()
                 if actual == wanted:
-                    print("[确认] 设备状态回读：已{}。".format(label))
-                    return
-                detail = "设备仍报告已{}".format("开启" if actual else "关闭")
+                    if matched_since is None:
+                        matched_since = time.monotonic()
+                    if time.monotonic() - matched_since >= stable_for:
+                        print("[确认] 设备状态回读：已{}。".format(label))
+                        self.motor_confirmed = True
+                        return
+                    detail = "目标状态尚未持续确认"
+                else:
+                    matched_since = None
+                    detail = "设备仍报告已{}".format("开启" if actual else "关闭")
             except DeviceError as error:
+                matched_since = None
                 detail = str(error)
             if time.monotonic() >= deadline:
                 raise DeviceError("未确认装置已{}：{}。请查询状态；本次没有重复切换。".format(label, detail))
@@ -163,13 +178,14 @@ class SweepTester(SweepDeviceTCPClient):
         return "液压杆{} {} 秒指令已接收，动作计时结束；设备不回传位置，请观察实物。".format(label, duration_s)
 
     def set_recovery(self, enabled):
-        """Overlap one 3-second rod pulse and one confirmed motor transition."""
-        before = self.status()
-        self.previous_state = before
+        """One rod pulse; confirm motor again after it, not only at ACK time."""
+        self.motor_confirmed = False
         wanted = int(enabled)
         errors = []
         try:
             if enabled:
+                before = self.status()
+                self.previous_state = before
                 # Confirm reception, then start the motor during extension.
                 # Do not start it if the extension command was not acknowledged.
                 self._start_hydraulic("extend", 3)
@@ -177,17 +193,30 @@ class SweepTester(SweepDeviceTCPClient):
             else:
                 # Send OFF first, then retract without waiting for motor
                 # state polling. Both commands use this same TCP connection.
-                self._request_state(wanted, before)
+                try:
+                    before = self.status()
+                    self.previous_state = before
+                    self._request_state(wanted, before)
+                except DeviceError as error:
+                    # A failed motor query must never suppress rod retraction.
+                    # Unknown state is NOT permission to send a blind toggle.
+                    print("[提示] 电机停止尚未确认：{}；继续收杆，再重新查询。".format(error))
                 try:
                     self._start_hydraulic("retract", 3)
                 except DeviceError as error:
                     errors.append(str(error))
-            try:
-                self._confirm_state(wanted)
-            except DeviceError as error:
-                errors.append(str(error))
         finally:
             self._wait_hydraulic()
+        initial_state = self.previous_state
+        try:
+            # Some controllers drop/undo a motor transition during rod motion.
+            # Query afresh after the pulse and only toggle if still opposite.
+            # A lost ACK with the correct real state therefore never toggles twice.
+            self.set_state(wanted, stable_for=min(0.6, self.settle / 2.0))
+        except DeviceError as error:
+            errors.append(str(error))
+        finally:
+            self.previous_state = initial_state
         if errors:
             raise DeviceError("；".join(errors))
         return "清扫已{}；液压杆{} 3 秒指令已接收，动作计时结束（设备不回传杆位置）。".format(
@@ -250,6 +279,7 @@ def main(argv=None):
     parser.add_argument("--port", type=int, default=50003, help="设备 TCP 端口（默认：50003）")
     parser.add_argument("--timeout", type=positive_seconds, default=2.0, help="单次通信超时秒数（默认：2）")
     parser.add_argument("--settle", type=positive_seconds, default=4.0, help="切换后等待目标状态秒数（默认：4）")
+    parser.add_argument("--verify-stable", action="store_true", help="启停后持续回读确认，用于自动联动补发")
     parser.add_argument("--json", action="store_true", help="输出供 Qt 使用的 JSON 结果，过程日志写入 stderr")
     args = parser.parse_args(argv)
     if not 1 <= args.port <= 65535:
@@ -281,7 +311,8 @@ def execute_action(args):
                 elif recovery:
                     result["message"] = device.set_recovery(args.action == "recovery-start")
                 else:
-                    device.set_state(int(args.action == "on"))
+                    device.set_state(int(args.action == "on"),
+                                     min(0.6, args.settle / 2.0) if args.verify_stable else 0.0)
                 result["success"] = True
                 if not hydraulic and not recovery:
                     result["message"] = "设备回读：清扫装置已{}。".format("开启" if device.last_state else "关闭")
@@ -293,6 +324,8 @@ def execute_action(args):
             finally:
                 result["state"] = device.last_state
                 result["previous_state"] = device.previous_state
+                result["motor_command_sent"] = device.motor_command_sent
+                result["motor_confirmed"] = device.motor_confirmed
                 if hydraulic or recovery:
                     result.update(duration_s=3 if recovery else args.duration,
                                   hydraulic_sent=device.hydraulic_sent,
@@ -312,7 +345,8 @@ def execute_action(args):
         elif recovery:
             print(device.set_recovery(args.action == "recovery-start"))
         else:
-            device.set_state(int(args.action == "on"))
+            device.set_state(int(args.action == "on"),
+                             min(0.6, args.settle / 2.0) if args.verify_stable else 0.0)
         return 0
     except DeviceError as error:
         print("[失败] {}".format(error), file=sys.stderr)

@@ -1,0 +1,145 @@
+FOD-102 完整导航平台任务接入（2026-11-04）
+
+首次在新机器配置通信账号
+  将 config/platform_credentials.example.json 复制为 config/platform_credentials.local.json，
+  填写平台分配的 username/password，文件仅保存在本机，不提交 Git。
+  也可设置 RABBITMQ_USER、RABBITMQ_PWD；上报模块仍支持 FOD_CLOUD_RABBITMQ_USER/PASSWORD。
+  FOD_PLATFORM_CREDENTIALS 可指定另外的本机 JSON 文件。
+  本车现有账号已迁入该本机文件，启动方式和连接参数保持一致。
+
+当前行为
+本车 DEVICE、vehicleId 均为 FOD-102。用户已明确授权收到发给本车的任务后自动执行。
+完整导航入口 scripts/operator_all_in_one.sh 默认启动位置上报、接收、自动任务和 Qt 远程页。
+普通任务按 waypoints 顺序导航；回收任务沿用原来的 10 米启动清扫/伸杆、视觉接近、
+穿越 0.8 米、结束关闭清扫/收杆、默认倒退 1.5 米复查流程。该接入不直接发布速度。
+现有任务尚在执行时新任务排队。相同 missionId 与内容不重复执行；相同编号、不同内容拒绝。
+已接收任务状态保存到 ~/.config/autolabor/platform_tasks.json；进程重启不自动续跑中断任务。
+任务执行中在 Qt 手动发送新 GPS 目标会取消远端任务及其队列，让本地新目标接管。
+位置上报随任务状态更新 STATUS；Qt 和日志显示任务编号、点位进度、当前情况及结果。
+没有另造平台未定义的任务结果 ACK 报文；心跳确认只代表 RabbitMQ 服务器接收。
+
+如何让对方发送
+1. 使用文档中的 autopilot.mission.direct 交换机（fanout）、空 routing key、UTF-8 JSON。
+2. 必须明确 vehicleId="FOD-102"，missionId 每次任务唯一，lat/LAT 为纬度，lon/LON 为经度。
+3. 正常导航用 type="normal" 和 waypoints 数组，action="go"。
+   需要导航后回收时，在上述对象中加 recovery:true；也支持 type="recovery" 或 TARGETS 数组。
+   其中 recovery/type=recovery 是本车补充约定；对方最少改动可沿用 normal 加 recovery:true。
+4. speed 可不填，沿用当前导航速度；填正数时只下调至不超过本机当前前进速度上限。
+   回收阶段仍沿用现有相机速度参数。任务收尾恢复本模块改动的导航速度；保留人工改速。
+5. 立即停车用独立任务，单个 waypoint 的 action="stop"（speed 可为 0）；会取消当前及排队任务。
+   终点 action="park" 表示按原 GPS 导航到该点后停止，不发送独立驻车制动或熄火报文。
+   stop 仍需按既有格式填写合法经纬度，但不导航到该坐标。
+6. heading 原字段留在请求日志，当前 GPS 目标接口使用路径方向，不强制远端终点朝向。
+   turn/reverse/charge 和 emergency/controlPoints 额外业务未实现，保留原文并明确提示未支持。
+   return 仅按传入的 waypoints 导航，不额外发起请求或偏航回归业务。
+7. 无 vehicleId、无 missionId 的旧 TARGETS/lines/点组数据只接收记录；不猜测接收车辆。
+   authCode 原样留存，文档未给校验接口，本模块不声称已验证此码。
+8. COMM-TEST-、LOCAL-LINK-CHECK- 开头编号，以及 testOnly:true，永远只接收，不驱动车辆。
+   原 config/fod_platform_receive_test.json 继续用于纯通信测试。不要把它当作驾驶任务。
+
+日常操作
+  cd /home/slam/robot_ws_agx
+  ./scripts/operator_all_in_one.sh 1.8 cruise       完整导航，沿用原设备接入方式
+  ./scripts/fod_platform_link.sh status            看平台及任务状态
+  ./scripts/platform_task_panel.sh                 单独打开同一 Qt 远程页，不启动导航
+  rosservice call /fod_platform/cancel_task "{}"    取消远端任务及其等待队列，原控制器负责收尾
+
+完整 Qt 的“远程”页上部为新平台任务，下部保留原 RabbitMQ 缓存及手动发送方式。
+独立通信仍可用 fod_platform_link.sh start|stop，但不要同时启动两个同名通信节点。
+独立 stop 关闭本模块，并取消它正在执行的任务；没有本模块任务时不停止本地导航。
+完整入口关停时先结束本模块，再按原流程关闭导航。
+配置 remote_execution=false 可仅接收、上报；当前配置为 true。
+OPERATOR_START_PLATFORM_LINK=false 可不随完整入口启动本模块，原导航仍可独立使用。
+
+结果与留存
+/fod_platform/inbox：消息解析记录。
+/fod_platform/task_status：任务、当前点及结果。
+/fod_platform/status：通信、实际位置上报、任务综合状态，供 Qt 显示。
+received_raw.jsonl：调度前先落盘的完整请求；received.jsonl：解析及处理结果。
+tasks.jsonl：任务进度、取消、失败、完成；published.jsonl：实际发出并获服务器确认的心跳。
+状态 6/COMPLETED 仅表示程序流程结束；复查 PASSED/FOD_REMAINS/INCONCLUSIVE 另存，
+不能仅据此宣称垃圾已经实际入仓。故障、拒绝目标或收尾未确认不写为完整回收成功。
+没有有效实时 GPS 时不发位置，不拿旧经纬度或模拟经纬度充数；接收仍可用。
+
+本次验证和当前现场状态
+2026-11-04 主控被用户单独拿出；目前未启动硬件导航或发送实车目标。
+32 项协议/任务测试、7 项原 Qt 接口检查、Qt 编译及独立 ROS 串联测试通过。
+串联测试使用独立 master、模拟导航/清扫接口与假 AMQP 通道，不连接实际车辆或真实 broker。
+验证了两点顺序、任务去重、回收收尾等待、错误目标不继续、状态上报及通信测试不驱动车辆。
+新的远端自动驾驶尚未实车验收；真实 GPS 上报及 broker 回环接收的既有证据见下方历史记录。
+本次代码、验证和修改前备份：log/platform_task_integration_20261103_155627/。
+
+以下为 2026-11-03 通信阶段原始说明，保留溯源；其中“只接收、不执行”由上文替代。
+======================================================================
+
+FOD-102 远端通信联调（2026-11-03）
+
+本车编号由用户确认：DEVICE 和 vehicleId 均为 FOD-102。
+依据：/home/slam/Downloads/FOD现场验证流程.docx。
+本轮只实现实测 GPS 位置上报、远端消息接收与记录；不执行下发路线、管制、
+紧急制动或清扫命令。原 Qt / collection_vehicle 缓存目标与手动发送方式保留。
+没有新增车辆速度发布者、任务使能或导航依赖。
+
+一条命令启动或查看
+  cd /home/slam/robot_ws_agx
+  ./scripts/fod_platform_link.sh start
+  ./scripts/fod_platform_link.sh status
+  ./scripts/fod_platform_link.sh stop
+stop 只关闭本通信节点。完整导航下次启动默认同时启动本模块，并随该完整会话关闭。
+OPERATOR_START_PLATFORM_LINK=false 可关闭完整入口的自动启动；不影响导航启动。
+配置在 config/fod_platform_link.json；日志保存在每次启动对应的 log 目录。
+独立入口当前日志目录记在 /tmp/agx_platform_current。
+
+上报
+  服务器：39.98.47.163:5672，vhost=/，复用项目现有 RabbitMQ 账号。
+  exchange=FOD_CAR_HEARTBEAT，类型 fanout，routing key 为空。
+  频率约 1 Hz，CMD="1008"，DATA 数组中 DEVICE="FOD-102"。
+  LAT=北纬十进制度，LON=东经十进制度，坐标系 WGS84；不做 GCJ02/BD09 转换。
+  timestamp 使用 /gps/fix.header.stamp，localtimestamp 使用发送时系统时间，
+  均为 Unix 毫秒。这里的源时间是 ROS 定位消息时间，不宣称是 GNSS 原始 UTC。
+  无定位、源时间或接收时间过旧、无效坐标时暂停位置上报，保留接收通道；
+  不把旧位置重新盖上当前时间伪装成实时位置。
+  COURSE_ANGLE 使用 /gps/heading；SPEED 使用 /odom 实际线速度绝对值，沿用旧实现的 m/s。
+  SOC 使用 CAN 电量百分比。ROLL/PITCH 沿用底盘平面里程计，通常为 0，非实测车体姿态。
+  STATUS：1 运行，9 空闲，6 模块行程结束，7 中止/失败。
+  状态 6 不单独证明 FOD 实际入仓，实物结果仍需现场确认。
+  MODE=1 沿用已有上报实现。文档未明确 MODE/SPEED 单位及 ERRORCODE 细分定义，
+  这些约定待平台联调确认，不能把协议示例当作完整字段规范。
+  ERRORCODE 沿用旧上报器的本地位标记：1 GPS、2 航向、4 里程计、8 电量。
+  GPS 异常时不发位置，因此正常在线报文应为 ERRORCODE=0。
+
+接收
+  本车专用持久队列：autolabor.FOD-102.inbox。
+  绑定以下 fanout 交换机：
+    autopilot.mission.direct
+    FOD_CAR_COMMAND
+    FOD_CAR_RESPONSE
+    FOD_CAR_TARGET_CLIENT
+  不抢用 collection_vehicle 或其他车辆队列。
+  本次服务器原先没有 autopilot.mission.direct，已按文档创建 fanout、durable=true；
+  持久化是本次实现选择，文档写“待定”。未改动既有交换机定义。
+  支持标准 JSON 的 waypoints、TARGETS、lines 及合法点组数组，保留原始报文。
+  vehicleId 不匹配时标注为其他车辆；仅有 DEVICE 的旧消息保留字段，不猜测其含义。
+  非法 JSON、交换经纬度、非有限数值拒绝解析并记录原因。不会修造文档中非法的
+  FOD 分组示例，也不会套用其告警示例里颠倒的 lon/lat 标注。
+  /fod_platform/inbox 发布接收记录，/fod_platform/status 发布通信状态。
+  received.jsonl 保存消息原始字节的 Base64、原交换机、任务编号、解析结果等。
+  published.jsonl 保存实际发送心跳及 RabbitMQ 确认。日志不包含密码。
+  本模块接收消息不发 /gps/goal_fix、/cmd_vel，也不调用任何车辆动作服务。
+
+与对方配合
+  1. 对方连接上述服务器和 vhost，使用双方已有账号。
+  2. 发布到 autopilot.mission.direct（名字带 direct，但类型为 fanout）。
+     routing key 留空，content_type=application/json，UTF-8 编码。
+  3. 将 config/fod_platform_receive_test.json 的内容作为正文发送。
+     missionId 用 COMM-TEST-FOD-102-001；重测时递增，方便区分。
+     对方若有 authCode 验证，使用其实际合法值；本轮接收程序只保存，不用它授权运动。
+  4. 对方说明已发送的 missionId，本车对照 received.jsonl 和 /fod_platform/inbox 核对。
+     判断依据：原交换机、同一编号、vehicleId=FOD-102、valid=true、executed=false。
+  5. 平台页面确认是否显示 FOD-102、坐标是否一致。服务器确认与本车自订阅回读，
+     只能证明 RabbitMQ 投递，不能代替平台应用成功处理或页面显示的确认。
+
+本次已验证：一次实测 GPS 报文获 RabbitMQ 确认并由独立临时订阅回读一致；
+本机发往远端 autopilot.mission.direct 的 LOCAL-LINK-CHECK 测试由本车成功接收解析。
+该消息是本机经远端服务器回环测试，不冒充其他人员发送的测试。
+对方独立发送及平台页面显示待其确认。审计见 log/remote_platform_20261103_153624/。

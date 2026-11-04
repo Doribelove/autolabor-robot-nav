@@ -39,6 +39,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
         cls.target_class = "Metal"
         cls.target_confidence = 0.9
         cls.target_depth_valid = True
+        cls.target_range_m = 2.1
         cls.target_age_sec = 0.0
         cls.drop_target_when_paused = False
         cls.sweep_states_at_visual_enable = []
@@ -191,6 +192,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
             visible, name = cls.target_visible, cls.target_class
             confidence, age = cls.target_confidence, cls.target_age_sec
             depth_valid = cls.target_depth_valid
+            target_range = cls.target_range_m
             route_active, route_state = cls.route_active, cls.route_state
             publish_detections = cls.publish_detections
         cls.route_pub.publish(String(data=json.dumps(dict(
@@ -211,8 +213,8 @@ class FodNavigationModeRosTest(unittest.TestCase):
             item.confidence = confidence
             item.track_id = 1
             item.depth_valid = depth_valid
-            item.depth_m = 2.0 if depth_valid else 0.0
-            item.range_m = 2.1 if depth_valid else 0.0
+            item.depth_m = target_range - 0.1 if depth_valid else 0.0
+            item.range_m = target_range if depth_valid else 0.0
             item.bbox.x_offset = 590
             item.bbox.y_offset = 280
             item.bbox.width = 100
@@ -255,9 +257,19 @@ class FodNavigationModeRosTest(unittest.TestCase):
     def test_proximity_and_detection_then_recovery_lifecycle(self):
         with self.lock:
             type(self).output_history = []
-        switches_before_visual = 0
         cycles_before_visual = 0
         if self.retain_gps_route:
+            # Replay pt5 failure: recovery armed beside a completed return
+            # point must wait for a new route, even with visible close FOD.
+            self._conditions(gps_x=20.0, route_active=False,
+                             route_state="COMPLETE", target_visible=True)
+            self.assertTrue(self.mode_proxy(True).success)
+            self._wait_until(lambda: self.latest_status.get("recovery_armed"), 2.0)
+            self._assert_gps_undisturbed()
+            self.assertEqual(self.sweeper.hydraulic, [])
+            self.assertIsNone(self.latest_status.get("final_goal_distance_m"))
+            self.assertTrue(self.mode_proxy(False).success)
+            self._conditions(route_active=True, route_state="ACTIVE_FINAL")
             # A visible nearby target alone never takes control without arming.
             self._conditions(gps_x=10.1, target_visible=True)
             self._assert_gps_undisturbed()
@@ -271,7 +283,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
             self._conditions(gps_x=10.0)
             self._assert_gps_undisturbed()
             self.assertEqual(self.sweeper.hydraulic, [])
-            # With no camera stream at all, enter the area and start sweeping
+            # With no camera stream at all, start the motor and lower the rod
             # while continuing every GPS command without pause/cancel/zero.
             self._conditions(target_visible=False)
             self._conditions(publish_detections=False)
@@ -279,19 +291,21 @@ class FodNavigationModeRosTest(unittest.TestCase):
             self._wait_until(lambda: self.latest_status.get("recovery_sweep_ready"), 5.0)
             self.assertEqual(self.sweeper.state, 1)
             self.assertEqual([(a, d) for a, d, _ in self.sweeper.hydraulic], [("extend", 3)])
+            self.assertEqual(self.latest_status.get("sweep_motor_control"), "automatic")
             self._assert_gps_undisturbed(sweep_switches=1)
             self._conditions(publish_detections=True)
             for change in (dict(target_visible=True, target_depth_valid=False),
                            dict(target_depth_valid=True, target_class="Stone"),
                            dict(target_class="Metal", target_confidence=0.1),
-                           dict(target_confidence=0.9, target_visible=False)):
+                           dict(target_confidence=0.9, target_range_m=10.01),
+                           dict(target_range_m=30.0),
+                           dict(target_range_m=2.1, target_visible=False)):
                 self._conditions(**change)
                 self._assert_gps_undisturbed(sweep_switches=1)
-            # GPS-only collection completes with no visual takeover and closes
-            # the automatically started sweeper at the normal route end.
+            # GPS-only collection stops the motor and retracts exactly once.
             self._conditions(route_active=False, route_state="COMPLETE")
-            self._wait_until(lambda: self.sweeper.state == 0, 5.0)
             self._assert_hydraulic_cycles(1)
+            self.assertEqual(self.sweeper.state, 0)
             self.assertFalse(self.latest_status.get("recovery_armed"))
             self._assert_gps_undisturbed(sweep_switches=2)
             # Use a newly accepted final target rather than the arrived one.
@@ -302,13 +316,12 @@ class FodNavigationModeRosTest(unittest.TestCase):
             self._conditions(gps_x=20.1)
             self._wait_until(lambda: self.latest_status.get("recovery_sweep_ready"), 5.0)
             self._assert_gps_undisturbed(sweep_switches=3)
-            # Canceling closes our sweeper without pausing GPS navigation.
+            # Canceling stops and retracts without pausing GPS navigation.
             self.assertTrue(self.mode_proxy(False).success)
             self.assertEqual(self.sweeper.state, 0)
             self._assert_hydraulic_cycles(2)
             self._conditions(target_visible=True)
             self._assert_gps_undisturbed(sweep_switches=4)
-            switches_before_visual = 4
             cycles_before_visual = 2
             # Neither an old source timestamp nor a gap in detection messages
             # expires the last actual target. A new empty frame still clears it.
@@ -333,7 +346,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
         self.visual_state_pub.publish(String(data="ABORT"))
         self._wait_until(lambda: self.latest_state == "FOD_ABORTED", 2.0)
         self._wait_until(lambda: abs(self.latest_output.linear.x) < 1e-9, 2.0)
-        self._wait_until(lambda: self.sweeper.state == 0, 5.0)
+        self._assert_hydraulic_cycles(cycles_before_visual + 1)
         self.assertTrue(self.mode_proxy(False).success)
         self._assert_hydraulic_cycles(cycles_before_visual + 1)
         self._wait_until(lambda: self.latest_state == "GPS_ACTIVE", 3.0)
@@ -347,7 +360,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
         self._wait_until(lambda: self.latest_state == "FOD_ACTIVE", 6.0)
         self.visual_state_pub.publish(String(data="COMPLETE"))
         self._wait_until(lambda: self.latest_state == "FOD_COMPLETE_STOP", 3.0)
-        self._wait_until(lambda: self.sweeper.state == 0, 5.0)
+        self._assert_hydraulic_cycles(cycles_before_visual + 2)
         pauses_at_complete = list(self.pause_requests)
         starts_at_complete = list(self.visual_requests)
         for _ in range(8):
@@ -373,26 +386,28 @@ class FodNavigationModeRosTest(unittest.TestCase):
         rospy.sleep(0.5)
         self.assertEqual(self.latest_state, "GPS_ACTIVE")
         self.assertFalse(self.latest_status.get("recovery_armed"))
-        self.assertEqual(self.sweeper.switches, switches_before_visual + 4)
+        self.assertEqual(self.sweeper.switches, 2 * (cycles_before_visual + 2))
 
-        # The automatic cycle also owns a motor already switched on manually:
-        # no redundant ON toggle, but completion stops it and retracts once.
+        # A preexisting manual ON must not be toggled OFF during startup.
         self.sweeper.state = 1
+        switches = self.sweeper.switches
         self.assertTrue(self.mode_proxy(True).success)
         self._wait_until(lambda: self.latest_state == "FOD_ACTIVE", 6.0)
+        self.assertEqual(self.sweeper.state, 1)
+        self.assertEqual(self.sweeper.switches, switches)
         self.visual_state_pub.publish(String(data="COMPLETE"))
         self._wait_until(lambda: self.latest_state == "FOD_COMPLETE_STOP", 3.0)
-        self._wait_until(lambda: self.sweeper.state == 0, 5.0)
-        self.assertEqual(self.sweeper.switches, switches_before_visual + 5)
-        self.assertTrue(all(state == 1 for state in self.sweep_states_at_visual_enable))
+        self._assert_hydraulic_cycles(cycles_before_visual + 3)
+        self.assertEqual(self.sweeper.state, 0)
+        self.assertEqual(self.sweeper.switches, switches + 1)
+        self.assertEqual(self.sweep_states_at_visual_enable, [1, 1, 1])
         self.assertTrue(self.mode_proxy(False).success)
         self._assert_hydraulic_cycles(cycles_before_visual + 3)
         self._wait_until(lambda: self.latest_state == "GPS_ACTIVE", 3.0)
 
         if self.retain_gps_route:
-            # Losing FOD during handoff resumes GPS with the automatically
-            # started sweeper kept ON, rather than defeating GPS fallback.
-            self.sweeper.state = 0
+            # Losing FOD during handoff preserves both active actuators.
+            switches = self.sweeper.switches
             previous_visual_starts = self.visual_requests.count(True)
             previous_pauses = len(self.pause_requests)
             self._conditions(drop_target_when_paused=True)
@@ -403,21 +418,20 @@ class FodNavigationModeRosTest(unittest.TestCase):
             self._wait_until(lambda: abs(self.latest_output.linear.x - 1.0) < 1e-6, 2.0)
             self.assertEqual(self.visual_requests.count(True), previous_visual_starts)
             self.assertEqual(self.sweeper.state, 1)
-            self.assertEqual(self.sweeper.switches, switches_before_visual + 6)
+            self.assertEqual(self.sweeper.switches, switches + 1)
             self._assert_hydraulic_cycles(cycles_before_visual + 3, active=True)
             self.assertTrue(self.mode_proxy(False).success)
             self.assertEqual(self.sweeper.state, 0)
-            self.assertEqual(self.sweeper.switches, switches_before_visual + 7)
+            self.assertEqual(self.sweeper.switches, switches + 2)
             self._assert_hydraulic_cycles(cycles_before_visual + 4)
 
-            # A sweeper that does not start reports its failure without
-            # converting GPS fallback into a fault stop or retrying toggles.
-            self.sweeper.behavior = "unchanged"
+            # A lost hydraulic ACK does not pause GPS or retry actuator pulses.
+            self.sweeper.behavior = "hydraulic_lost_ack"
             self._conditions(target_visible=False)
             pauses = len(self.pause_requests)
             visual_starts = self.visual_requests.count(True)
             self.assertTrue(self.mode_proxy(True).success)
-            self._wait_until(lambda: "sweeper start failed" in
+            self._wait_until(lambda: "sweeper start not confirmed" in
                              self.latest_status.get("reason", ""), 10.0)
             self.assertEqual(self.latest_state, "GPS_ACTIVE")
             self.assertAlmostEqual(self.latest_output.linear.x, 1.0)
@@ -430,6 +444,8 @@ class FodNavigationModeRosTest(unittest.TestCase):
             self._assert_hydraulic_cycles(cycles_before_visual + 5)
 
         self.assertEqual(self.unexpected_faults, [], "unexpected command-graph fault during recovery")
+        self.assertEqual(self.sweeper.state, 0)
+        self.assertTrue(all(c in ("query", "switch", "extend", "retract") for c,_ in self.sweeper.commands))
 
     def _assert_hydraulic_cycles(self, completed, active=False):
         expected = [("extend", 3), ("retract", 3)] * completed

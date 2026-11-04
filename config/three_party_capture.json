@@ -1,0 +1,534 @@
+{
+  "schema_version": 1,
+  "basis": "2026-10-14 live ROS master discovery, existing scripts/record_rosbag.sh, successful pt3 capture whitelist; rechecked at every start",
+  "observed_at": "2026-10-14T13:15:03.534648+08:00",
+  "ros_distro": "noetic",
+  "ros_master_uri": "http://127.0.0.1:11311",
+  "compression": "lz4",
+  "split_size_mb": 2048,
+  "buffer_mb": 512,
+  "topics": [
+    {
+      "name": "/fod/detections",
+      "observed_type": "autolabor_fod_msgs/FodDetectionArray",
+      "critical": true,
+      "observed_publishers": [
+        "/fod_detector"
+      ]
+    },
+    {
+      "name": "/fod_camera/image_raw/compressed",
+      "observed_type": "sensor_msgs/CompressedImage",
+      "critical": false,
+      "observed_publishers": [
+        "/zed2/zed_node"
+      ]
+    },
+    {
+      "name": "/fod_camera/camera_info",
+      "observed_type": "sensor_msgs/CameraInfo",
+      "critical": false,
+      "observed_publishers": [
+        "/zed2/zed_node"
+      ]
+    },
+    {
+      "name": "/fod_navigation_mode/state",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/fod_navigation_mode"
+      ]
+    },
+    {
+      "name": "/fod_navigation_mode/status",
+      "observed_type": "std_msgs/String",
+      "critical": true,
+      "observed_publishers": [
+        "/fod_navigation_mode"
+      ]
+    },
+    {
+      "name": "/fod_visual_servo/state",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/fod_visual_servo"
+      ]
+    },
+    {
+      "name": "/fod_visual_servo/status",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/fod_visual_servo"
+      ]
+    },
+    {
+      "name": "/fod_visual_servo/completed",
+      "observed_type": "std_msgs/Bool",
+      "critical": false,
+      "observed_publishers": [
+        "/fod_visual_servo"
+      ]
+    },
+    {
+      "name": "/gps/fix",
+      "observed_type": "sensor_msgs/NavSatFix",
+      "critical": true,
+      "observed_publishers": [
+        "/gps_localization"
+      ]
+    },
+    {
+      "name": "/gps/heading",
+      "observed_type": "std_msgs/Float64",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_localization"
+      ]
+    },
+    {
+      "name": "/gps/odom",
+      "observed_type": "nav_msgs/Odometry",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_localization"
+      ]
+    },
+    {
+      "name": "/gps/goal_fix",
+      "observed_type": "sensor_msgs/NavSatFix",
+      "critical": false,
+      "observed_publishers": [
+        "/rabbitmq_gps_goal_bridge",
+        "/autolabor_operator_gui",
+        "/fod_navigation_mode"
+      ]
+    },
+    {
+      "name": "/gps/long_range/final_goal",
+      "observed_type": "geometry_msgs/PoseStamped",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_long_range_goal_manager"
+      ]
+    },
+    {
+      "name": "/gps/long_range/subgoal",
+      "observed_type": "geometry_msgs/PoseStamped",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_long_range_goal_manager"
+      ]
+    },
+    {
+      "name": "/gps/long_range/status",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_long_range_goal_manager"
+      ]
+    },
+    {
+      "name": "/gps/long_range/active",
+      "observed_type": "std_msgs/Bool",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_long_range_goal_manager"
+      ]
+    },
+    {
+      "name": "/gps/targets/selection",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/autolabor_operator_gui"
+      ]
+    },
+    {
+      "name": "/odom",
+      "observed_type": "nav_msgs/Odometry",
+      "critical": true,
+      "observed_publishers": [
+        "/m2_driver"
+      ]
+    },
+    {
+      "name": "/cmd_vel_navigation",
+      "observed_type": "geometry_msgs/Twist",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/cmd_vel_gps",
+      "observed_type": "geometry_msgs/Twist",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_goal_speed_limiter"
+      ]
+    },
+    {
+      "name": "/cmd_vel_fod",
+      "observed_type": "geometry_msgs/Twist",
+      "critical": false,
+      "observed_publishers": [
+        "/fod_visual_servo"
+      ]
+    },
+    {
+      "name": "/cmd_vel",
+      "observed_type": "geometry_msgs/Twist",
+      "critical": true,
+      "observed_publishers": [
+        "/fod_navigation_mode"
+      ]
+    },
+    {
+      "name": "/m2_driver/chassis_info",
+      "observed_type": "autolabor_canbus_driver/ChassisStatusInfo",
+      "critical": false,
+      "observed_publishers": [
+        "/m2_driver"
+      ]
+    },
+    {
+      "name": "/m2_driver/chassis_monitor",
+      "observed_type": "autolabor_canbus_driver/ChassisMonitorInfo",
+      "critical": false,
+      "observed_publishers": [
+        "/m2_driver"
+      ]
+    },
+    {
+      "name": "/m2_driver/wheel_angle",
+      "observed_type": "std_msgs/Float64",
+      "critical": false,
+      "observed_publishers": [
+        "/m2_driver"
+      ]
+    },
+    {
+      "name": "/m2_driver/control_timeout",
+      "observed_type": "std_msgs/Bool",
+      "critical": false,
+      "observed_publishers": [
+        "/m2_driver"
+      ]
+    },
+    {
+      "name": "/m2_driver/emergency_stop",
+      "observed_type": null,
+      "critical": false,
+      "observed_publishers": []
+    },
+    {
+      "name": "/m2_driver/brake_set",
+      "observed_type": null,
+      "critical": false,
+      "observed_publishers": []
+    },
+    {
+      "name": "/m2_driver/left_wheel_vel",
+      "observed_type": "std_msgs/Float64",
+      "critical": false,
+      "observed_publishers": [
+        "/m2_driver"
+      ]
+    },
+    {
+      "name": "/m2_driver/right_wheel_vel",
+      "observed_type": "std_msgs/Float64",
+      "critical": false,
+      "observed_publishers": [
+        "/m2_driver"
+      ]
+    },
+    {
+      "name": "/canbus_msg",
+      "observed_type": "autolabor_canbus_driver/CanBusMessage",
+      "critical": false,
+      "observed_publishers": [
+        "/canbus_driver"
+      ]
+    },
+    {
+      "name": "/move_base_simple/goal",
+      "observed_type": "geometry_msgs/PoseStamped",
+      "critical": false,
+      "observed_publishers": [
+        "/autolabor_operator_gui"
+      ]
+    },
+    {
+      "name": "/move_base/goal",
+      "observed_type": "move_base_msgs/MoveBaseActionGoal",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_long_range_goal_manager",
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/cancel",
+      "observed_type": "actionlib_msgs/GoalID",
+      "critical": false,
+      "observed_publishers": [
+        "/autolabor_operator_gui",
+        "/gps_long_range_goal_manager",
+        "/fod_navigation_mode"
+      ]
+    },
+    {
+      "name": "/move_base/status",
+      "observed_type": "actionlib_msgs/GoalStatusArray",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/feedback",
+      "observed_type": "move_base_msgs/MoveBaseActionFeedback",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/result",
+      "observed_type": "move_base_msgs/MoveBaseActionResult",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/TebLocalPlannerROS/global_plan",
+      "observed_type": "nav_msgs/Path",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/TebLocalPlannerROS/local_plan",
+      "observed_type": "nav_msgs/Path",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/scan",
+      "observed_type": "sensor_msgs/LaserScan",
+      "critical": true,
+      "observed_publishers": [
+        "/pointcloud_to_laserscan"
+      ]
+    },
+    {
+      "name": "/tf",
+      "observed_type": "tf2_msgs/TFMessage",
+      "critical": false,
+      "observed_publishers": [
+        "/zed2/zed2_state_publisher",
+        "/zed2/zed_node",
+        "/m2_driver",
+        "/body_to_base_link",
+        "/gps_localization",
+        "/robot_state_publisher"
+      ]
+    },
+    {
+      "name": "/tf_static",
+      "observed_type": "tf2_msgs/TFMessage",
+      "critical": false,
+      "observed_publishers": [
+        "/zed2/zed2_state_publisher",
+        "/zed2/zed_node",
+        "/robot_state_publisher"
+      ]
+    },
+    {
+      "name": "/rosout",
+      "observed_type": "rosgraph_msgs/Log",
+      "critical": false,
+      "observed_publishers": [
+        "/rabbitmq_gps_goal_bridge",
+        "/fod_detector",
+        "/zed2/zed2_state_publisher",
+        "/zed2/zed_node",
+        "/gps_static_error_monitor",
+        "/autolabor_operator_gui",
+        "/canbus_driver",
+        "/m2_driver",
+        "/livox_lidar_publisher2",
+        "/laserMapping",
+        "/livox_obstacle_cloud",
+        "/pointcloud_self_filter",
+        "/pointcloud_to_laserscan",
+        "/body_to_base_link",
+        "/gps_localization",
+        "/gps_long_range_goal_manager",
+        "/fod_navigation_mode",
+        "/fod_visual_servo",
+        "/robot_state_publisher",
+        "/move_base",
+        "/gps_goal_speed_limiter",
+        "/gps_keepout",
+        "/vehicle_outline"
+      ]
+    },
+    {
+      "name": "/diagnostics",
+      "observed_type": "diagnostic_msgs/DiagnosticArray",
+      "critical": false,
+      "observed_publishers": [
+        "/zed2/zed_node",
+        "/fod_detector",
+        "/fod_visual_servo"
+      ]
+    },
+    {
+      "name": "/rabbitmq_bridge/status",
+      "observed_type": "autolabor_operator_msgs/RabbitMqStatus",
+      "critical": false,
+      "observed_publishers": [
+        "/rabbitmq_gps_goal_bridge"
+      ]
+    },
+    {
+      "name": "/livox/lidar",
+      "observed_type": "livox_ros_driver2/CustomMsg",
+      "critical": false,
+      "observed_publishers": [
+        "/livox_lidar_publisher2"
+      ]
+    },
+    {
+      "name": "/livox/imu",
+      "observed_type": "sensor_msgs/Imu",
+      "critical": false,
+      "observed_publishers": [
+        "/livox_lidar_publisher2"
+      ]
+    },
+    {
+      "name": "/cloud_livox_body",
+      "observed_type": "sensor_msgs/PointCloud2",
+      "critical": false,
+      "observed_publishers": [
+        "/livox_obstacle_cloud"
+      ]
+    },
+    {
+      "name": "/cloud_filtered_for_scan",
+      "observed_type": "sensor_msgs/PointCloud2",
+      "critical": false,
+      "observed_publishers": [
+        "/pointcloud_self_filter"
+      ]
+    },
+    {
+      "name": "/move_base/local_costmap/costmap",
+      "observed_type": "nav_msgs/OccupancyGrid",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/local_costmap/costmap_updates",
+      "observed_type": "map_msgs/OccupancyGridUpdate",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/global_costmap/costmap",
+      "observed_type": "nav_msgs/OccupancyGrid",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/global_costmap/costmap_updates",
+      "observed_type": "map_msgs/OccupancyGridUpdate",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/gps/targets/state",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_keepout"
+      ]
+    },
+    {
+      "name": "/rabbitmq_bridge/latest_target",
+      "observed_type": "autolabor_operator_msgs/RemoteTarget",
+      "critical": false,
+      "observed_publishers": [
+        "/rabbitmq_gps_goal_bridge"
+      ]
+    },
+    {
+      "name": "/gps/keepout/state",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_keepout"
+      ]
+    },
+    {
+      "name": "/move_base/current_goal",
+      "observed_type": "geometry_msgs/PoseStamped",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/move_base/recovery_status",
+      "observed_type": "move_base_msgs/RecoveryStatus",
+      "critical": false,
+      "observed_publishers": [
+        "/move_base"
+      ]
+    },
+    {
+      "name": "/gps/static_error/summary",
+      "observed_type": "std_msgs/String",
+      "critical": false,
+      "observed_publishers": [
+        "/gps_static_error_monitor"
+      ]
+    }
+  ],
+  "parameter_roots": [
+    "/fod_navigation_mode",
+    "/fod_visual_servo",
+    "/fod_detector",
+    "/gps_localization",
+    "/gps_long_range_goal_manager",
+    "/move_base/TebLocalPlannerROS",
+    "/gps_keepout",
+    "/zed2/zed_node"
+  ],
+  "known_data_limits": [
+    "NavSatFix only exposes fix/no-fix; RTK fix_quality, satellite count, HDOP and receiver UTC are not published by the current gps_localization node.",
+    "Dual-antenna solution type/baseline are available in /rosout, not a substitute for positional RTK quality.",
+    "FOD_COMPLETE_STOP and visual completed mean crossing/stop, not confirmed physical pickup.",
+    "ROS1 mode services are not passively recorded as requests. Save supplied request bodies with the request command; GPS goals themselves are captured on topics.",
+    "No full-frame raw depth or raw RGB is recorded by this profile. Per-detection depth and compressed RGB are recorded.",
+    "Sweep status in mode status is protocol acknowledgement/timing, not hydraulic position feedback."
+  ]
+}

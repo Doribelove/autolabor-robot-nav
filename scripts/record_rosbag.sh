@@ -85,6 +85,7 @@ Usage:
   scripts/record_rosbag.sh all      # record every ROS topic with rosbag record -a
   scripts/record_rosbag.sh both     # record mode1 topics and all topics into two bags
   scripts/record_rosbag.sh topics   # print the mode1 topic list
+  scripts/record_rosbag.sh custom   # record the inspected BAG_TOPICS_FILE whitelist
 
 Output:
   Bags are written to the current directory by default.
@@ -95,6 +96,9 @@ Environment:
   SPLIT_SIZE_MB=4096            # split bag files at this size, 0 disables split
   COMPRESSION=none|lz4|bz2      # default: none
   WAIT_ROS_MASTER_SEC=10        # wait for roscore before recording
+  BAG_TOPICS_FILE=/path/topics.txt  # required for custom; one absolute topic per line
+  BAG_BUFFER_MB=512             # custom recorder buffer
+  BAG_NODE_NAME=three_party_bag # optional custom recorder ROS node name
 
 Examples:
   cd "$ROBOT_WS"
@@ -189,6 +193,28 @@ record_all() {
   exec rosbag "${args[@]}"
 }
 
+record_custom() {
+  require_file "${BAG_TOPICS_FILE:-}"
+  local -a topics=() args=(record)
+  local topic
+  while IFS= read -r topic || [[ -n "$topic" ]]; do
+    [[ -z "$topic" || "$topic" == \#* ]] && continue
+    [[ "$topic" =~ ^/[A-Za-z0-9_/]+$ ]] || {
+      echo "Invalid absolute topic in BAG_TOPICS_FILE" >&2
+      exit 2
+    }
+    topics+=("$topic")
+  done < "$BAG_TOPICS_FILE"
+  (( ${#topics[@]} > 0 )) || { echo "Empty recording whitelist" >&2; exit 2; }
+  build_common_args args
+  args+=(--buffsize="${BAG_BUFFER_MB:-512}" -O "$OUT_DIR/$BAG_PREFIX")
+  args+=("__name:=${BAG_NODE_NAME:-three_party_bag}" "${topics[@]}")
+  # rosbag's Python wrapper can exit before its recorder child finishes
+  # closing the bag. rosrun execs the same C++ recorder so the saved PID
+  # remains the actual writer through the final flush and rename.
+  exec rosrun rosbag record "${args[@]:1}"
+}
+
 case "$MODE" in
   -h|--help|help)
     usage
@@ -198,7 +224,7 @@ case "$MODE" in
     print_topics
     exit 0
     ;;
-  mode1|all|both) ;;
+  mode1|all|both|custom) ;;
   *)
     usage >&2
     exit 1
@@ -221,6 +247,9 @@ wait_ros_master "$WAIT_ROS_MASTER_SEC"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 
 case "$MODE" in
+  custom)
+    record_custom
+    ;;
   mode1)
     record_mode1 "$STAMP"
     ;;

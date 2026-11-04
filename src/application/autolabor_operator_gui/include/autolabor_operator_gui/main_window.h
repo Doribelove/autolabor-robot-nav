@@ -126,6 +126,9 @@ struct TelemetrySnapshot
   bool rabbit_status_received = false;
   autolabor_operator_msgs::RabbitMqStatus rabbit_status;
   ros::WallTime rabbit_status_received_at;
+  bool platform_status_received = false;
+  std::string platform_status;
+  ros::WallTime platform_status_received_at;
 
   bool remote_target_received = false;
   autolabor_operator_msgs::RemoteTarget remote_target;
@@ -222,6 +225,7 @@ private:
   QWidget* buildRabbitPage();
   QWidget* buildTestPage();
   QWidget* buildVisionPage();
+  QWidget* buildDirectRecoveryPanel(QWidget* parent, bool overview);
   QWidget* buildPlaceholderPage(const QString& title, const QString& subtitle,
                                 const QStringList& planned_items);
   QWidget* buildLogPage();
@@ -240,7 +244,7 @@ private:
                           const QString& action_name);
   void callSetBoolService(const std::string& service_name, bool enabled,
                           QPushButton* button, const QString& action_name);
-  void requestFodMode(bool enabled);
+  void requestFodMode(bool enabled, bool direct = false);
   void requestCameraControls(bool apply_changes);
   void applyCameraControlsResult(const CameraControlsResult& result);
   bool gpsGoalReady(const TelemetrySnapshot& data, QString* reason = nullptr) const;
@@ -262,6 +266,7 @@ private:
   void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
   void navigationCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
   void rabbitStatusCallback(const autolabor_operator_msgs::RabbitMqStatus::ConstPtr& msg);
+  void platformStatusCallback(const std_msgs::String::ConstPtr& msg);
   void remoteTargetCallback(const autolabor_operator_msgs::RemoteTarget::ConstPtr& msg);
   void cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg);
   void debugImageCallback(const sensor_msgs::Image::ConstPtr& msg);
@@ -298,6 +303,7 @@ private:
   ros::Subscriber scan_subscriber_;
   ros::Subscriber navigation_subscriber_;
   ros::Subscriber rabbit_status_subscriber_;
+  ros::Subscriber platform_status_subscriber_;
   ros::Subscriber remote_target_subscriber_;
   ros::Subscriber camera_image_subscriber_;
   ros::Subscriber debug_image_subscriber_;
@@ -353,6 +359,10 @@ private:
   QPushButton* overview_fod_stop_button_ = nullptr;
   QPushButton* fod_start_button_ = nullptr;
   QPushButton* fod_stop_button_ = nullptr;
+  QPushButton* overview_direct_start_button_ = nullptr;
+  QPushButton* overview_direct_stop_button_ = nullptr;
+  QPushButton* direct_start_button_ = nullptr;
+  QPushButton* direct_stop_button_ = nullptr;
   QCheckBox* exposure_auto_checkbox_ = nullptr;
   QDoubleSpinBox* exposure_input_ = nullptr;
   QCheckBox* gain_auto_checkbox_ = nullptr;
@@ -366,6 +376,11 @@ private:
   ros::WallTime last_debug_preview_conversion_;
   bool manual_goal_initialized_ = false;
   bool mode_request_pending_ = false;
+  bool direct_stop_pending_ = false;
+  bool direct_panel_only_ = false;
+  bool platform_panel_only_ = false;
+  QPlainTextEdit* platform_points_ = nullptr;
+  QPushButton* platform_cancel_ = nullptr;
   bool camera_request_pending_ = false;
 
   QProcess recorder_;

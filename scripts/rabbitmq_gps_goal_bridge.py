@@ -16,8 +16,8 @@ from std_srvs.srv import Trigger, TriggerResponse
 # ====================== RabbitMQ 配置 ======================
 RABBITMQ_HOST = "39.98.47.163"
 RABBITMQ_PORT = 5672
-RABBITMQ_USER = "caacsriUser"
-RABBITMQ_PWD = "caacsriUser"
+from platform_credentials import rabbitmq_credentials
+RABBITMQ_USER, RABBITMQ_PWD = rabbitmq_credentials()
 VIRTUAL_HOST = "/"
 
 # 队列名称，必须和发送端确认一致

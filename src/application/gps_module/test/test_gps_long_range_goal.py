@@ -76,7 +76,8 @@ class RollingGoalGeometryTest(unittest.TestCase):
         )
 
     def test_intermediate_goal_advances_at_five_metres_remaining(self):
-        route = RollingGoalRoute(200.0, 0.0)
+        # Explicit older/custom thresholds remain supported.
+        route = RollingGoalRoute(200.0, 0.0, advance_distance=5.0)
         route.next_segment(0.0, 0.0)
 
         self.assertFalse(route.should_advance(9.9, 0.0))
@@ -87,11 +88,30 @@ class RollingGoalGeometryTest(unittest.TestCase):
         self.assertEqual(next_segment.index, 2)
 
     def test_detour_progress_advances_without_entering_five_metre_circle(self):
-        route = RollingGoalRoute(200.0, 0.0)
+        route = RollingGoalRoute(200.0, 0.0, advance_distance=5.0)
         route.next_segment(0.0, 0.0)
 
         self.assertGreater(route.distance_to_segment(11.0, 6.0), 5.0)
         self.assertTrue(route.should_advance(11.0, 6.0))
+
+    def test_cruise_horizon_does_not_shrink_between_rolling_targets(self):
+        route = RollingGoalRoute(200.0, 0.0)
+        visible_goal = route.next_segment(0.0, 0.0)
+        pending = None
+        previous_endpoint = 6.5
+        # Include 0.5 s from route update to new global-plan availability,
+        # at the requested 1.8 m/s (above the current measured chassis cap).
+        for tick in range(1000):
+            x = tick * .1 * 1.8
+            if pending and tick >= pending[0]:
+                visible_goal = pending[1]
+                pending = None
+            if pending is None and route.should_advance(x, 0.0):
+                pending = (tick + 5, route.next_segment(x, 0.0))
+            endpoint = min(x + 6.5, visible_goal.x)
+            self.assertGreaterEqual(visible_goal.x - x, 6.5)
+            self.assertLess(abs(endpoint - previous_endpoint), 1.0)
+            previous_endpoint = endpoint
 
     def test_passing_subgoal_laterally_never_requires_turning_back(self):
         route = RollingGoalRoute(200.0, 0.0)
@@ -502,6 +522,24 @@ class LongRangeManagerStateTest(unittest.TestCase):
         self.assertIs(manager.route, retained_route)
         self.assertEqual(manager.route_state, "PAUSED")
         self.assertEqual(manager.cancel_pub.messages[-1].id, current_goal_id)
+
+    def test_explicit_replacement_clears_paused_route_without_resending_it(self):
+        manager = self.manager_with_route(final_x=4.0)
+        now = rospy.Time.from_sec(10.0)
+        manager._send_next_segment_locked(0.0, 0.0, now)
+        old_id = manager.current_goal_id
+        manager.set_paused_callback(mock.Mock(data=True))
+        count = len(manager.action_goal_pub.messages)
+        self.assertTrue(manager.clear_route_callback(None).success)
+        self.assertTrue(manager.paused)
+        self.assertFalse(manager.route_active)
+        with mock.patch.object(MANAGER.rospy.Time, "now", return_value=now):
+            self.assertTrue(manager.set_paused_callback(mock.Mock(data=False)).success)
+            manager.move_base_status_callback(self.status_message(old_id, GoalStatus.SUCCEEDED))
+        self.assertFalse(manager.paused)
+        self.assertFalse(manager.route_active)
+        self.assertEqual(manager.route_state, "IDLE")
+        self.assertEqual(len(manager.action_goal_pub.messages), count)
 
     def test_resume_final_segment_has_new_identity_and_ignores_old_terminal_echo(self):
         for terminal in (GoalStatus.PREEMPTED, GoalStatus.RECALLED, GoalStatus.SUCCEEDED):

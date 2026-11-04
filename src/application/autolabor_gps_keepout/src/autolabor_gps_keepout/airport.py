@@ -45,6 +45,9 @@ def _coordinates(value):
 def validate_airport(value):
     if not isinstance(value, dict):
         raise ValueError('机场地图格式不正确')
+    boundary_prebuffered = value.get('boundary_prebuffered', False)
+    if type(boundary_prebuffered) is not bool:
+        raise ValueError('地图边界已含预留距离标记必须是布尔值')
     geo = value.get('geometry', {})
     if geo.get('type') not in ('Polygon', 'MultiPolygon'):
         raise ValueError('机场通行范围必须是闭合多边形')
@@ -62,6 +65,7 @@ def validate_airport(value):
         raise ValueError('机场地图面积太小或跨度超过 10 公里')
     result = {'name': str(value.get('name', '机场地图'))[:120],
               'source_sha256': str(value.get('source_sha256', ''))[:64],
+              'boundary_prebuffered': boundary_prebuffered,
               'crs': 'EPSG:4326', 'geometry': mapping(geometry),
               'area_m2': local.area}
     context = value.get('context')

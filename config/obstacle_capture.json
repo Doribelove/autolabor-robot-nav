@@ -1,0 +1,108 @@
+{
+  "extends": "three_party_capture.json",
+  "basis": "2026-10-17 本机实际 ROS 话题与 Downloads/三方测试报告.docx 中 FOD回收模块-避障能力；被动采集，不下发巡检或速度。",
+  "report_reference": {
+    "path": "/home/slam/Downloads/三方测试报告.docx",
+    "sha256": "45957b6e6b896b34b509e8ca4d1cfb4968be7ac1089065e88a5ca7cf163ef807",
+    "bytes": 47388,
+    "read_at": "2026-10-17T13:24:43.507377+08:00",
+    "obstacle_case": "FOD回收模块-避障能力",
+    "source_paragraphs": [
+      154,
+      261
+    ],
+    "fixed_speed_mps": null,
+    "note": "原报告仅写规定行驶速度，未给数值；本次不改原速度。回收部分原模板三点，保留用户后续pt1-pt6安排。"
+  },
+  "report_requirements": {
+    "case": "FOD回收模块-避障能力",
+    "lights": [
+      "白天",
+      "夜晚",
+      "黎明",
+      "黄昏"
+    ],
+    "minimum_runs": 4,
+    "minimum_dimensions_m": {
+      "length": 0.2,
+      "width": 0.2,
+      "height": 0.5
+    },
+    "change_obstacle_and_position_each_run": true,
+    "required_result": [
+      "bypassed",
+      "continued"
+    ],
+    "evidence_categories": [
+      "illuminance",
+      "obstacle",
+      "client_speed",
+      "bypass_frame"
+    ],
+    "bypass_sequence_images": "3-4",
+    "speed_mps_in_document": null
+  },
+  "topics": [
+    {
+      "name": "/fod_camera/image_raw/compressed",
+      "critical": true
+    },
+    {
+      "name": "/fod_camera/camera_info",
+      "critical": true
+    },
+    {
+      "name": "/gps/long_range/status",
+      "critical": true
+    },
+    {
+      "name": "/tf",
+      "critical": true
+    },
+    {
+      "name": "/cloud_filtered_for_scan",
+      "critical": true
+    },
+    {
+      "name": "/move_base/local_costmap/costmap",
+      "critical": true
+    },
+    {
+      "name": "/fod/detections",
+      "critical": false
+    },
+    {
+      "name": "/fod_navigation_mode/status",
+      "critical": false
+    }
+  ],
+  "parameter_roots": [
+    "/fod_navigation_mode",
+    "/fod_visual_servo",
+    "/fod_detector",
+    "/gps_localization",
+    "/gps_long_range_goal_manager",
+    "/move_base/TebLocalPlannerROS",
+    "/gps_keepout",
+    "/zed2/zed_node",
+    "/gps_goal_speed_limiter",
+    "/m2_driver",
+    "/pointcloud_to_laserscan",
+    "/pointcloud_self_filter",
+    "/livox_obstacle_cloud",
+    "/move_base/local_costmap",
+    "/move_base/global_costmap"
+  ],
+  "known_data_limits": [
+    "NavSatFix only exposes fix/no-fix; RTK fix_quality, satellite count, HDOP and receiver UTC are not published by the current gps_localization node.",
+    "Dual-antenna solution type/baseline are available in /rosout, not a substitute for positional RTK quality.",
+    "FOD_COMPLETE_STOP and visual completed mean crossing/stop, not confirmed physical pickup.",
+    "ROS1 mode services are not passively recorded as requests. Save supplied request bodies with the request command; GPS goals themselves are captured on topics.",
+    "No full-frame raw depth or raw RGB is recorded by this profile. Per-detection depth and compressed RGB are recorded.",
+    "Sweep status in mode status is protocol acknowledgement/timing, not hydraulic position feedback.",
+    "Obstacle bypass and continued driving require operator/video confirmation; navigation COMPLETE alone is insufficient.",
+    "No fixed numeric speed is specified in the supplied obstacle test case. Record configured limits separately from /odom actual speed.",
+    "Lux-meter photo, obstacle measurements/GPS, client-speed screenshot and 3-4 consecutive bypass pictures remain user-provided evidence; ROS bag alone does not fill these fields.",
+    "Chat receipt timestamps are reported times only. Pre-obstacle speed extraction requires an actual encounter timestamp from synchronized evidence."
+  ]
+}

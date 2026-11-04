@@ -5,10 +5,15 @@
   <arg name="start_driver" default="true"/>
   <arg name="range_max" default="8.0"/>
 
-  <!-- body is 0.6 m above base_link: keep obstacles up to 1.5 m high.
+  <!-- The IMU body origin follows from the new measured lidar mount and
+       unchanged internal extrinsics. Keep the existing 1.5 m base-frame
+       obstacle ceiling; this is not an assumed maximum vehicle height.
        Body returns are removed with the physical footprint, not a global
        cutoff just above the lidar that also deletes real obstacles. -->
-  <arg name="remove_above_z" default="0.9"/>
+  <arg name="body_tf_x" default="0.011"/>
+  <arg name="body_tf_y" default="0.02329"/>
+  <arg name="body_tf_z" default="0.60588"/>
+  <arg name="remove_above_z" default="$(eval 1.5 - float(arg('body_tf_z')))"/>
   <arg name="near_radius" default="0.4"/>
   <arg name="near_min_z" default="-0.1"/>
   <arg name="near_max_z" default="0.1"/>
@@ -19,6 +24,8 @@
     <param name="input_topic" value="$(arg input_cloud)"/>
     <param name="output_topic" value="/cloud_livox_body"/>
     <param name="odom_topic" value="/gps/odom"/>
+    <param name="body_in_base_x" value="$(arg body_tf_x)"/>
+    <param name="body_in_base_y" value="$(arg body_tf_y)"/>
   </node>
 
   <include file="$(find robot_bringup)/launch/scan_fast_lio.launch">
@@ -39,6 +46,8 @@
     <arg name="max_height" value="1.5"/>
     <arg name="body_tf_parent" value="base_link"/>
     <arg name="body_tf_child" value="body"/>
-    <arg name="body_tf_z" value="0.6"/>
+    <arg name="body_tf_x" value="$(arg body_tf_x)"/>
+    <arg name="body_tf_y" value="$(arg body_tf_y)"/>
+    <arg name="body_tf_z" value="$(arg body_tf_z)"/>
   </include>
 </launch>

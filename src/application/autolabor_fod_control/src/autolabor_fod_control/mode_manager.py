@@ -12,12 +12,12 @@ STOP_SOURCE = "STOP"
 def final_goal_distance(route, x, y, frame_id):
     """Distance to the accepted final GPS target, never the rolling subgoal.
 
-    Completed routes remain available for an operator who enables recovery
-    after arrival. Canceled, aborted and superseded routes cannot trigger it.
+    Only the current active route can trigger recovery. An arrived return
+    point must not be reused when recovery is armed for the next FOD task.
     """
     if not isinstance(route, dict) or route.get("paused", False):
         return None
-    if not route.get("active", False) and route.get("state") != "COMPLETE":
+    if not route.get("active", False):
         return None
     if not frame_id or frame_id.lstrip("/") != str(route.get("frame_id", "")).lstrip("/"):
         return None

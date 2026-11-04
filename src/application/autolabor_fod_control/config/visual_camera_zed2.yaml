@@ -5,6 +5,13 @@ expected_image_width: 1280
 expected_image_height: 720
 expected_camera_frame: zed2_left_camera_optical_frame
 select_nearest_by_depth: true
+# Acquisition uses the entire configured detection band (now the lower half).
+# Keep the pickup area at the same full-image position, y=50%..100%, central
+# 60% width. Its top is relative to the band, so use 0 instead of moving it
+# accidentally to y=75% when the upper-half detection mask is enabled.
+min_acquire_anchor_v_fraction: 0.0
+max_acquire_anchor_v_fraction: 1.0
+recovery_region_top_fraction: 0.0
 # Use actual low-confidence YOLO hits with registered depth. Keep the same
 # material classes and body exclusion; no preview-held boxes or stone class.
 min_confidence: 0.12

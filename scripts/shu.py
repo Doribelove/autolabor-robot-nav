@@ -5,8 +5,8 @@ import sys
 # ====================== 配置项 ======================
 RABBITMQ_HOST = "39.98.47.163"    # 你的 RabbitMQ 服务器 IP/域名
 RABBITMQ_PORT = 5672         # AMQP 默认端口
-RABBITMQ_USER = "caacsriUser"      # 用户名（远程连接不要用 guest，默认禁止远程访问）
-RABBITMQ_PWD  = "caacsriUser"  # 密码
+from platform_credentials import rabbitmq_credentials
+RABBITMQ_USER, RABBITMQ_PWD = rabbitmq_credentials()
 QUEUE_NAME    = "collection_vehicle"     # 队列名称，必须与发送端完全一致
 VIRTUAL_HOST  = "/"              # 虚拟主机，默认是 /
 # ===================================================

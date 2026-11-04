@@ -163,7 +163,7 @@ void preview(QGraphicsView* view,const QJsonArray& zones,const QJsonArray& targe
 KeepoutPanel::KeepoutPanel(QWidget* parent):QWidget(parent)
 {
   setObjectName("gpsKeepoutPanel");auto* root=new QVBoxLayout(this);
-  auto* note=new QLabel(QStringLiteral("可导入机场地图自动建立通行范围，或手动添加禁入多边形。按 1.6 × 0.8 米车体预留距离。绿色为机场可行区域，内部空洞及外部禁行；编辑后点击“应用到导航”。"),this);
+  auto* note=new QLabel(QStringLiteral("可导入机场地图自动建立通行范围，或手动添加禁入多边形。实体车体 1.74 × 0.80 米，导航外廓 1.94 × 1.00 米；原底盘中心保持为原点。绿色为机场可行区域，内部空洞及外部禁行；编辑后点击“应用到导航”。"),this);
   note->setWordWrap(true);root->addWidget(note);
   auto* options=new QHBoxLayout();root->addLayout(options);
   enabled_=new QCheckBox(QStringLiteral("启用通行范围 / 禁入区"),this);enabled_->setObjectName("keepoutEnabled");options->addWidget(enabled_);

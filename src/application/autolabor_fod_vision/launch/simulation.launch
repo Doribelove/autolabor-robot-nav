@@ -16,6 +16,8 @@
         name="fod_ground_projector"
         output="screen">
     <rosparam command="load" file="$(find autolabor_fod_vision)/config/projection.yaml"/>
+    <!-- Synthetic source uses its original ground-level base frame. -->
+    <param name="ground_z" value="0.0"/>
     <param name="base_frame" value="base_link"/>
     <param name="output_frame" value="odom"/>
     <param name="allowed_class_names" value="fod"/>

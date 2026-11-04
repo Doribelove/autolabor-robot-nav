@@ -14,6 +14,23 @@ def detection(identity=1, distance=4.0):
 
 
 class GpsMemoryTest(unittest.TestCase):
+    def test_far_same_id_cannot_refresh_visibility_or_move_cached_endpoint(self):
+        memory = FodGpsMemory(frames=3)
+        for i in range(3):
+            memory.observe(1+i*.05, [(detection(), (4., 0., 0.))], (0., 0.))
+        original = memory.snapshot(30., 104.)
+        seen = memory.last_seen_stamp
+        self.assertFalse(memory.match_visible(1.2, [detection(distance=12.)]))
+        self.assertEqual(memory.last_seen_stamp, seen)
+        self.assertEqual(memory.snapshot(30., 104.), original)
+        self.assertFalse(memory.recently_visible(2.2, 1.0))
+        self.assertAlmostEqual(original['goal_x']-original['fod_x'], .8)
+        # Unknown depth on the actual near target still preserves its pixel
+        # observation; the 10 m filter must not reintroduce dropout aborts.
+        missing_depth = replace(detection(), depth_valid=False, depth_m=0., range_m=0.)
+        self.assertTrue(memory.match_visible(2.3, [missing_depth]))
+        self.assertEqual(memory.snapshot(30., 104.), original)
+
     def test_identity_and_material_change_reconnect_without_moving_gps_endpoint(self):
         m = FodGpsMemory(frames=3)
         for i in range(3):

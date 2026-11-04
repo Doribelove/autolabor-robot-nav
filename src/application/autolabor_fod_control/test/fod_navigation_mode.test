@@ -18,6 +18,9 @@
     <param name="detections_topic" value="/test/detections"/>
     <param name="sweep_ip" value="127.0.0.1"/>
     <param name="sweep_port" value="$(arg mock_sweep_port)"/>
+    <!-- This fixture checks the explicit opt-out lifecycle; default reverse
+         and camera verification are exercised by gps_loss_recovery.test. -->
+    <param name="verification_enabled" value="false"/>
     <param name="status_rate_hz" value="10.0"/>
     <param name="visual_state_topic" value="/test/fod/state"/>
     <param name="visual_enable_service" value="/test/fod/set_enabled"/>

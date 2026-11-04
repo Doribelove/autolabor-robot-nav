@@ -1,0 +1,26 @@
+<launch>
+  <!-- User installation of 2026-11-03, metres and radians.
+       Only fixed TF/metadata: no camera drivers and no motion publishers.
+       ZED's own URDF remains owned by zed2_camera.launch. -->
+  <param name="/vehicle/base_link_ground_height" value="0.25"/>
+  <!-- MID360's internal lidar -> IMU calibration is unchanged. -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="body_to_livox_frame"
+        args="-0.011 -0.02329 0.04412 0 0 0 body livox_frame"/>
+
+  <!-- RX1 link x faces the view direction, z up; positive pitch looks down.
+       Optical frames describe upright images (x right, y down, z forward).
+       The reference project corrects upside-down left/right raw images;
+       attaching their raw streams to these upright frames needs that correction. -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_rx1_0"
+        args="0 0.215 0.55 1.5707963267948966 0.3839724354387525 0 base_link rx1_0_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="rx1_0_to_optical"
+        args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 rx1_0_link rx1_0_optical_frame"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_rx1_1"
+        args="0 -0.215 0.55 -1.5707963267948966 0.3839724354387525 0 base_link rx1_1_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="rx1_1_to_optical"
+        args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 rx1_1_link rx1_1_optical_frame"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_rx1_2"
+        args="-0.24 0 0.55 3.141592653589793 0.2617993877991494 0 base_link rx1_2_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="rx1_2_to_optical"
+        args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 rx1_2_link rx1_2_optical_frame"/>
+</launch>

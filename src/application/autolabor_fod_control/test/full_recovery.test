@@ -2,6 +2,7 @@
   <arg name="sweep_port" default="50194"/>
   <arg name="seed" default="1"/>
   <arg name="case_filter" default=""/>
+  <arg name="gps_fallback_enabled" default="false"/>
   <arg name="results_file" default="/tmp/fod_full_recovery_results.json"/>
   <param name="/use_sim_time" value="false"/>
   <param name="/fake_world/is_pub_control_timeout" value="true"/>
@@ -25,8 +26,12 @@
         name="fod_navigation_mode" output="screen">
     <param name="expected_driver_node" value="/fake_world"/>
     <param name="expected_gps_limiter_node" value="/fake_world"/>
+    <param name="gps_fallback_enabled" value="$(arg gps_fallback_enabled)"/>
     <param name="sweep_ip" value="127.0.0.1"/>
     <param name="sweep_port" value="$(arg sweep_port)"/>
+    <!-- Forward visual-servo scenarios intentionally end before verification.
+         The default full reverse/check is covered by gps_loss_recovery.test. -->
+    <param name="verification_enabled" value="false"/>
     <!-- The fixture starts after the manager; the actual command/odom link is
          exercised by every trajectory, while launch startup may be unordered. -->
     <param name="require_output_driver" value="false"/>

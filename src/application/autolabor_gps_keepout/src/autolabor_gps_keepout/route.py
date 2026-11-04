@@ -17,7 +17,7 @@ class KeepoutGoalRoute(RollingGoalRoute):
             distance = math.hypot(b[0]-a[0], b[1]-a[1])
             fraction = min(1., remaining/max(distance, 1e-9))
             candidate = (a[0]+(b[0]-a[0])*fraction, a[1]+(b[1]-a[1])*fraction)
-            if not self.geometry.clear_line(start, candidate):
+            if not self.geometry.clear_route_line(start, candidate):
                 break
             chosen = candidate
             remaining -= distance*fraction
@@ -27,7 +27,7 @@ class KeepoutGoalRoute(RollingGoalRoute):
 
     def final_is_within_horizon(self, x, y):
         return (super().final_is_within_horizon(x, y)
-                and self.geometry.clear_line((x, y), (self.final_x, self.final_y)))
+                and self.geometry.clear_route_line((x, y), (self.final_x, self.final_y)))
 
     def should_advance(self, x, y):
         segment = self.current_segment

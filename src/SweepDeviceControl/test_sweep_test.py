@@ -30,6 +30,8 @@ class DeviceServer:
     def __init__(self, behavior="normal", fragmented=False, port=0):
         self.state = 0
         self.switches = 0
+        self.queries = 0
+        self.motor_drop_at = None
         self.hydraulic = []
         self.commands = []
         self.behavior = behavior
@@ -83,6 +85,12 @@ class DeviceServer:
                         if bytes(pending) == self.QUERY:
                             pending.clear()
                             self.commands.append(("query", time.monotonic()))
+                            self.queries += 1
+                            if self.motor_drop_at and time.monotonic() >= self.motor_drop_at:
+                                self.state = 0
+                                self.motor_drop_at = None
+                            if self.behavior == "initial_queries_lost" and self.queries <= 2:
+                                continue
                             if self.behavior == "unknown_status":
                                 self.send(connection, b"unexpected reply")
                             else:
@@ -92,8 +100,11 @@ class DeviceServer:
                             pending.clear()
                             self.commands.append(("switch", time.monotonic()))
                             self.switches += 1
-                            if self.behavior != "unchanged":
+                            if self.behavior != "unchanged" and not (
+                                    self.behavior == "drop_first_switch" and self.switches == 1):
                                 self.state = 1 - self.state
+                            if self.behavior == "motor_drops_during_rod" and self.switches == 1:
+                                self.motor_drop_at = time.monotonic() + 0.25
                             if self.behavior == "disconnect_after_switch":
                                 break
                             if self.behavior != "lost_ack":
@@ -350,9 +361,53 @@ class SweepProtocolTest(unittest.TestCase):
             with self.assertRaisesRegex(DeviceError, "未确认装置已关闭"):
                 device.set_recovery(False)
             self.assertEqual(server.state, 1)
-            self.assertEqual(server.switches, 1)
+            # Fresh post-pulse feedback still says ON: one additional OFF
+            # attempt is allowed, and never another rod pulse.
+            self.assertEqual(server.switches, 2)
             self.assertTrue(device.hydraulic_acknowledged)
             self.assertEqual([(a, d) for a, d, _ in server.hydraulic], [("retract", 3)])
+
+    def test_recovery_dropped_motor_start_is_repaired_without_second_extension(self):
+        with DeviceServer(behavior="drop_first_switch") as server:
+            self.client(server).set_recovery(True)
+            self.assertEqual(server.state, 1)
+            self.assertEqual(server.switches, 2)
+            self.assertEqual([h[:2] for h in server.hydraulic], [("extend", 3)])
+
+    def test_motor_only_briefly_on_during_rod_is_not_reported_ready(self):
+        with DeviceServer(behavior="motor_drops_during_rod") as server:
+            device = self.client(server)
+            device.set_recovery(True)
+            self.assertEqual(server.state, 1)
+            self.assertTrue(device.motor_confirmed)
+            self.assertEqual(server.switches, 2)
+            self.assertEqual([h[:2] for h in server.hydraulic], [("extend", 3)])
+
+    def test_recovery_stop_initial_query_failure_still_retracts_and_stops_motor(self):
+        with DeviceServer(behavior="initial_queries_lost") as server:
+            server.state = 1
+            device = self.client(server)
+            device.set_recovery(False)
+            self.assertEqual(server.state, 0)
+            self.assertTrue(device.motor_confirmed)
+            self.assertTrue(device.hydraulic_acknowledged)
+            self.assertEqual(server.switches, 1)
+            self.assertEqual([h[:2] for h in server.hydraulic], [("retract", 3)])
+
+    def test_unknown_motor_state_cannot_suppress_retraction_or_blindly_toggle(self):
+        with DeviceServer(behavior="unknown_status") as server:
+            server.state = 1
+            device = self.client(server)
+            with self.assertRaises(DeviceError):
+                device.set_recovery(False)
+            self.assertEqual(server.switches, 0)
+            self.assertEqual([h[:2] for h in server.hydraulic], [("retract", 3)])
+
+    def test_lost_toggle_ack_during_recovery_does_not_toggle_back_off(self):
+        with DeviceServer(behavior="lost_ack") as server:
+            self.client(server).set_recovery(True)
+            self.assertEqual(server.state, 1)
+            self.assertEqual(server.switches, 1)
 
     def test_recovery_json_reports_partial_start_for_cleanup(self):
         with DeviceServer(behavior="unchanged") as server:

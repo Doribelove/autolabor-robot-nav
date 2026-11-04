@@ -6,7 +6,7 @@ ROBOT_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
 ROS_SETUP="${ROS_SETUP:-/opt/ros/noetic/setup.bash}"
 WS_SETUP="${WS_SETUP:-$ROBOT_WS/devel/setup.bash}"
 
-GPS_MAX_SPEED="${1:-1.6}"
+GPS_MAX_SPEED="${1:-1.8}"
 GPS_TEB_PROFILE="${2:-cruise}"
 # Collection runs approach small targets with a long front overhang. Start
 # slowing before the front of the 1.6 m vehicle reaches the target. Reuse the
@@ -28,9 +28,10 @@ OPERATOR_ZED_SERIAL_NUMBER="${OPERATOR_ZED_SERIAL_NUMBER:-0}"
 OPERATOR_ZED_GRAB_FPS="${OPERATOR_ZED_GRAB_FPS:-60}"
 OPERATOR_ZED_PUBLISH_FPS="${OPERATOR_ZED_PUBLISH_FPS:-60.0}"
 OPERATOR_ZED_DEPTH_MODE="${OPERATOR_ZED_DEPTH_MODE:-ULTRA}"
-OPERATOR_ZED_TENSORRT_ENGINE="${OPERATOR_ZED_TENSORRT_ENGINE:-$HOME/.cache/autolabor_fod/fod_zed_roi_224x960_fp16.engine}"
+OPERATOR_ZED_TENSORRT_ENGINE="${OPERATOR_ZED_TENSORRT_ENGINE:-$HOME/.cache/autolabor_fod/fod_zed_full_544x960_fp16.engine}"
 OPERATOR_FOD_PROFILE="${OPERATOR_FOD_PROFILE:-airport_recall}"
 OPERATOR_START_RABBITMQ="${OPERATOR_START_RABBITMQ:-true}"
+OPERATOR_START_PLATFORM_LINK="${OPERATOR_START_PLATFORM_LINK:-true}"
 OPERATOR_IMAGE_QUALITY_CONTROL="${OPERATOR_IMAGE_QUALITY_CONTROL:-true}"
 OPERATOR_IMAGE_QUALITY_EXPOSURE_MAX_US="${OPERATOR_IMAGE_QUALITY_EXPOSURE_MAX_US:-12000}"
 OPERATOR_DETECTOR_PYTHON="${OPERATOR_DETECTOR_PYTHON:-${FOD_YOLO_ENV:-$HOME/python_env/fod_yolo}/bin/python3}"
@@ -41,6 +42,7 @@ ROSCORE_PID=""
 VISION_PID=""
 ZED_PID=""
 RABBITMQ_PID=""
+PLATFORM_LINK_PID=""
 GUI_PID=""
 CLEANUP_STARTED=0
 ROS_MASTER_PREEXISTED=false
@@ -48,7 +50,7 @@ ROS_MASTER_PREEXISTED=false
 usage() {
   echo "Usage: $0 [gps_max_speed_mps] [cruise|obstacle]"
   echo
-  echo "Default: $0 1.6 cruise"
+  echo "Default: $0 1.8 cruise (requested; effective limit follows chassis)"
   echo
   echo "Optional environment switches:"
   echo "  OPERATOR_NAVIGATION_MODE=gps|fast_lio_indoor"
@@ -62,6 +64,7 @@ usage() {
   echo "  OPERATOR_ZED_TENSORRT_ENGINE=$OPERATOR_ZED_TENSORRT_ENGINE (off uses the original .pt model)"
   echo "  OPERATOR_FOD_PROFILE=airport_recall|original"
   echo "  OPERATOR_START_RABBITMQ=true|false"
+  echo "  OPERATOR_START_PLATFORM_LINK=true|false (GPS heartbeat and addressed remote tasks)"
   echo "  OPERATOR_IMAGE_QUALITY_CONTROL=true|false"
   echo "  OPERATOR_IMAGE_QUALITY_EXPOSURE_MAX_US=12000"
   echo "  OPERATOR_DETECTOR_PYTHON=$OPERATOR_DETECTOR_PYTHON"
@@ -159,7 +162,9 @@ cleanup() {
   CLEANUP_STARTED=1
   trap - EXIT INT TERM
 
-  # Stop the navigation bringup first. Its mode manager publishes a final zero
+  # End remote task dispatch before closing the existing navigation stack.
+  stop_process "$PLATFORM_LINK_PID" "FOD platform tasks and communication" 150
+  # The mode manager publishes a final zero
   # command and then the CAN/M2 processes are closed. Sidecars cannot move the
   # chassis after that command route disappears.
   stop_process "$BRINGUP_PID" "GPS navigation bringup" 120
@@ -221,6 +226,7 @@ for value_name in \
   OPERATOR_START_VISION \
   OPERATOR_START_CAMERA \
   OPERATOR_START_RABBITMQ \
+  OPERATOR_START_PLATFORM_LINK \
   OPERATOR_IMAGE_QUALITY_CONTROL; do
   if ! valid_boolean "${!value_name}"; then
     echo "Invalid $value_name=${!value_name}; use true or false." >&2
@@ -263,6 +269,7 @@ BRINGUP_LOG="$LOG_DIR/bringup.log"
 VISION_LOG="$LOG_DIR/vision.log"
 ZED_LOG="$LOG_DIR/zed.log"
 RABBITMQ_LOG="$LOG_DIR/rabbitmq.log"
+PLATFORM_LINK_LOG="$LOG_DIR/platform_link.log"
 GUI_LOG="$LOG_DIR/gui.log"
 ROSCORE_LOG="$LOG_DIR/fallback_roscore.log"
 touch "$BRINGUP_LOG"
@@ -351,6 +358,11 @@ else
 fi
 
 echo "==> opening the integrated Qt console while navigation initializes"
+if [[ "$OPERATOR_START_PLATFORM_LINK" == "true" ]]; then
+  python3 -u "$SCRIPT_DIR/fod_platform_link.py" "_log_directory:=$LOG_DIR/platform_link" \
+    >"$PLATFORM_LINK_LOG" 2>&1 &
+  PLATFORM_LINK_PID=$!
+fi
 "$SCRIPT_DIR/operator_gui.sh" "${GUI_ARGS[@]}" >"$GUI_LOG" 2>&1 &
 GUI_PID=$!
 

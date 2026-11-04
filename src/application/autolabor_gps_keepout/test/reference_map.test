@@ -1,0 +1,6 @@
+<launch>
+  <!-- Private rostest master only; this starts no vehicle/sensor drivers. -->
+  <include file="$(find autolabor_gps_keepout)/launch/reference_map.launch"/>
+  <test pkg="autolabor_gps_keepout" type="test_reference_map_ros.py"
+        test-name="reference_map" time-limit="30"/>
+</launch>

@@ -42,16 +42,62 @@ class FinalGoalDistanceTest(unittest.TestCase):
 
     def test_invalid_or_inactive_routes_cannot_trigger(self):
         for change in ({"paused": True}, {"active": False, "state": "CANCELED"},
-                       {"active": False, "state": "ABORTED"}, {"final_x": math.nan},
+                       {"active": False, "state": "ABORTED"},
+                       {"active": False, "state": "COMPLETE"}, {"final_x": math.nan},
                        {"final_y": None}, {"frame_id": "odom"}):
             with self.subTest(change=change):
                 self.assertIsNone(final_goal_distance(dict(self.route, **change), 10, 20, "camera_init"))
         self.assertIsNone(final_goal_distance({}, 10, 20, "camera_init"))
         self.assertIsNone(final_goal_distance(self.route, math.inf, 20, "camera_init"))
 
-    def test_arrived_final_target_can_still_be_recovered(self):
+    def test_arrived_return_point_cannot_trigger_the_next_fod_request(self):
         self.route.update(active=False, state="COMPLETE")
-        self.assertEqual(final_goal_distance(self.route, 13, 24, "camera_init"), 0)
+        self.assertIsNone(final_goal_distance(self.route, 13, 24, "camera_init"))
+        self.route.update(active=True, state="ACTIVE_FINAL", final_x=33.0)
+        self.assertEqual(final_goal_distance(self.route, 13, 24, "camera_init"), 20.0)
+
+
+class NewGoalAfterRecoveryTest(unittest.TestCase):
+    def setUp(self):
+        path = Path(__file__).resolve().parents[1] / "scripts/fod_navigation_mode_manager.py"
+        spec = importlib.util.spec_from_file_location("new_goal_mode_test", path)
+        self.module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.module)
+        self.node = self.module.FodNavigationModeManager.__new__(self.module.FodNavigationModeManager)
+        self.node.lock = threading.RLock()
+        self.node.transition_lock = threading.Lock()
+        self.node.mode = self.module.FOD_COMPLETE_STOP
+        self.node.retain_gps_route = True
+        self.node.gps_clear_service = "/test/clear_route"
+        self.node.service_wait_timeout_sec = 1.0
+
+    def test_new_goal_clears_retained_route_before_returning_to_gps(self):
+        order = []
+        self.node._return_to_gps = mock.Mock(side_effect=lambda reason: (order.append("resume") or True, "ready"))
+        service = mock.Mock(side_effect=lambda: (order.append("clear") or SimpleNamespace(success=True)))
+        with mock.patch.object(self.module.rospy, "wait_for_service"), \
+                mock.patch.object(self.module.rospy, "ServiceProxy", return_value=service):
+            self.assertTrue(self.node._prepare_gps_goal_cb(None).success)
+        self.assertEqual(order, ["clear", "resume"])
+
+    def test_clear_failure_never_resumes_old_route(self):
+        self.node._return_to_gps = mock.Mock()
+        service = mock.Mock(return_value=SimpleNamespace(success=False, message="clear failed"))
+        with mock.patch.object(self.module.rospy, "wait_for_service"), \
+                mock.patch.object(self.module.rospy, "ServiceProxy", return_value=service):
+            self.assertFalse(self.node._prepare_gps_goal_cb(None).success)
+        self.node._return_to_gps.assert_not_called()
+
+    def test_normal_gps_and_running_visual_do_not_get_reset(self):
+        self.node._return_to_gps = mock.Mock()
+        with mock.patch.object(self.module.rospy, "ServiceProxy") as service:
+            self.node.mode = self.module.GPS_ACTIVE
+            self.assertTrue(self.node._prepare_gps_goal_cb(None).success)
+            for state in (self.module.FOD_ACTIVE, self.module.FOD_ABORTED, self.module.FAULT_STOP):
+                self.node.mode = state
+                self.assertFalse(self.node._prepare_gps_goal_cb(None).success)
+            service.assert_not_called()
+        self.node._return_to_gps.assert_not_called()
 
 
 class CommandArbiterTest(unittest.TestCase):
@@ -206,49 +252,146 @@ class RecoveryEquipmentLifecycleTest(unittest.TestCase):
         self.node.sweep_port = 50193
 
     @staticmethod
-    def reply(success=True, sent=True, acknowledged=True):
+    def reply(success=True, sent=True, acknowledged=True, state=1, motor_confirmed=None):
         return SimpleNamespace(returncode=0 if success else 2, stdout=json.dumps(dict(
-            success=success, previous_state=1, hydraulic_sent=sent,
-            acknowledged=acknowledged, message="mock result")))
+            success=success, previous_state=0, state=state, hydraulic_sent=sent,
+            acknowledged=acknowledged, motor_confirmed=success if motor_confirmed is None else motor_confirmed,
+            message="mock result")))
 
     def test_proximity_handoff_completion_and_cancel_use_one_pulse_each(self):
-        with mock.patch.object(self.module.subprocess, "run", return_value=self.reply()) as run:
+        with mock.patch.object(self.module.subprocess, "run",
+                               side_effect=[self.reply(), self.reply(state=0)]) as run:
             self.assertTrue(self.node._set_sweep(True)[0])
-            # Preexisting manual ON does not exempt this cycle from cleanup.
+            # Both actuators are owned; visual handoff must not repeat startup.
             self.assertTrue(self.node.sweep_started_for_recovery)
             self.assertTrue(self.node._set_sweep(True)[0])
             self.node._stop_recovery_sweep()
             self.node._stop_recovery_sweep()
             self.assertEqual([c.args[0][2] for c in run.call_args_list],
-                             ["recovery-start", "on", "recovery-stop"])
+                             ["recovery-start", "recovery-stop"])
             self.assertFalse(self.node.sweep_started_for_recovery)
             self.assertFalse(self.node.recovery_sweep_ready)
 
     def test_uncertain_start_is_cleaned_up_without_repeating_failed_retraction(self):
         with mock.patch.object(self.module.subprocess, "run",
-                               return_value=self.reply(False, True, False)) as run, \
+                               side_effect=[self.reply(False, True, False),
+                                            self.reply(False, True, False, 0, True),
+                                            self.reply(state=0)]) as run, \
                 mock.patch.object(self.module.rospy, "logerr"):
             self.assertFalse(self.node._set_sweep(True)[0])
-            self.node._stop_recovery_sweep()
-            self.node._stop_recovery_sweep()
+            self.assertFalse(self.node._stop_recovery_sweep())
+            self.assertTrue(self.node.sweep_started_for_recovery)
+            self.assertFalse(self.node._stop_recovery_sweep())
             self.assertEqual([c.args[0][2] for c in run.call_args_list],
-                             ["recovery-start", "recovery-stop"])
+                             ["recovery-start", "recovery-stop", "off"])
+            self.assertFalse(self.node.sweep_cleanup_confirmed)
 
     def test_no_hydraulic_command_sent_requires_no_cleanup_motion(self):
         with mock.patch.object(self.module.subprocess, "run",
                                return_value=self.reply(False, False, False)) as run:
             self.assertFalse(self.node._set_sweep(True)[0])
             self.node._stop_recovery_sweep()
-            self.assertEqual(run.call_count, 1)
+            self.assertEqual(run.call_count, 3)  # bounded retry before any actuator was sent
 
     def test_child_timeout_keeps_one_cleanup_for_possibly_sent_pulse(self):
         timeout = self.module.subprocess.TimeoutExpired(["sweep_test.py"], 20)
         with mock.patch.object(self.module.subprocess, "run",
-                               side_effect=[timeout, self.reply()]) as run:
+                               side_effect=[timeout, self.reply(state=0)]) as run:
             self.assertFalse(self.node._set_sweep(True)[0])
             self.node._stop_recovery_sweep()
             self.node._stop_recovery_sweep()
             self.assertEqual(run.call_count, 2)
+            self.assertEqual([c.args[0][2] for c in run.call_args_list], ["recovery-start", "recovery-stop"])
+
+    def test_rod_ack_without_motor_running_cannot_report_ready(self):
+        for motor_state in (0, -1, None):
+            with self.subTest(motor_state=motor_state):
+                with mock.patch.object(self.module.subprocess, "run", side_effect=[
+                        self.reply(state=motor_state)] * 3 + [self.reply(state=0)]) as run:
+                    self.assertFalse(self.node._set_sweep(True)[0])
+                    self.assertFalse(self.node.recovery_sweep_ready)
+                    self.node._stop_recovery_sweep()
+                    self.assertEqual([c.args[0][2] for c in run.call_args_list],
+                                     ["recovery-start", "on", "on", "recovery-stop"])
+
+    def test_missing_rod_ack_cannot_report_ready_even_with_motor_on(self):
+        with mock.patch.object(self.module.subprocess, "run", return_value=self.reply(True, True, False)):
+            self.assertFalse(self.node._set_sweep(True)[0])
+            self.assertFalse(self.node.recovery_sweep_ready)
+            self.assertTrue(self.node.sweep_started_for_recovery)
+
+    def test_start_motor_retry_does_not_extend_twice(self):
+        with mock.patch.object(self.module.subprocess, "run", side_effect=[
+                self.reply(False, True, True, 0), self.reply(sent=False)]) as run:
+            self.assertTrue(self.node._set_sweep(True)[0])
+            self.assertEqual([c.args[0][2] for c in run.call_args_list], ["recovery-start", "on"])
+            self.assertIn("--verify-stable", run.call_args_list[-1].args[0])
+
+    def test_cleanup_retry_does_not_retract_twice(self):
+        self.node.sweep_started_for_recovery = True
+        with mock.patch.object(self.module.subprocess, "run", side_effect=[
+                self.reply(False, True, True, 1), self.reply(state=0, sent=False)]) as run:
+            self.assertTrue(self.node._stop_recovery_sweep())
+            self.assertEqual([c.args[0][2] for c in run.call_args_list], ["recovery-stop", "off"])
+            self.assertFalse(self.node.sweep_started_for_recovery)
+
+    def test_failed_cleanup_keeps_obligation_until_later_motor_confirmation(self):
+        self.node.sweep_started_for_recovery = True
+        with mock.patch.object(self.module.subprocess, "run", side_effect=[
+                self.reply(False, True, True, 1)] * 3 + [self.reply(state=0, sent=False)]) as run:
+            self.assertFalse(self.node._stop_recovery_sweep())
+            self.assertTrue(self.node.sweep_started_for_recovery)
+            self.assertFalse(self.node.sweep_cleanup_confirmed)
+            self.assertTrue(self.node._stop_recovery_sweep())
+            self.assertEqual([c.args[0][2] for c in run.call_args_list],
+                             ["recovery-stop", "off", "off", "off"])
+
+    def test_failure_before_any_retraction_can_retry_full_stop(self):
+        self.node.sweep_started_for_recovery = True
+        with mock.patch.object(self.module.subprocess, "run", side_effect=[
+                self.reply(False, False, False, -1), self.reply(state=0)]) as run:
+            self.assertTrue(self.node._stop_recovery_sweep())
+            self.assertEqual([c.args[0][2] for c in run.call_args_list],
+                             ["recovery-stop", "recovery-stop"])
+
+    def test_cancel_during_start_prevents_later_motor_retry(self):
+        self.node.recovery_cancel_requested = threading.Event()
+        def partial(*args, **kwargs):
+            self.node.recovery_cancel_requested.set()
+            return self.reply(False, True, True, 0)
+        with mock.patch.object(self.module.subprocess, "run", side_effect=partial) as run:
+            self.assertFalse(self.node._set_sweep(True)[0])
+            self.assertEqual(run.call_count, 1)
+            self.assertTrue(self.node.sweep_started_for_recovery)
+
+    def test_real_cli_cycle_overlaps_motor_and_rod_and_cleans_up_once(self):
+        # Exercise manager -> actual CLI -> loopback TCP controller, never hardware.
+        workspace = Path(__file__).resolve().parents[4]
+        sys.path.insert(0, str(workspace / "src" / "SweepDeviceControl"))
+        from test_sweep_test import DeviceServer
+        for initial_state in (0, 1):
+            with self.subTest(initial_motor_state=initial_state), DeviceServer() as server:
+                server.state = initial_state
+                self.node.sweep_script = str(workspace / "scripts" / "sweep_test.py")
+                self.node.sweep_port = server.port
+                self.assertTrue(self.node._set_sweep(True)[0])
+                self.assertEqual(server.state, 1)
+                commands_at_start = list(server.commands)
+                self.assertTrue(self.node._set_sweep(True)[0])  # Visual handoff.
+                self.assertEqual(server.commands, commands_at_start)
+                self.node._stop_recovery_sweep()
+                stopped_commands = list(server.commands)
+                self.node._stop_recovery_sweep()  # Later cancel/shutdown is a no-op.
+                self.assertEqual(server.commands, stopped_commands)
+                actions = [(cmd, at) for cmd, at in server.commands if cmd != "query"]
+                expected = ["extend", "switch", "switch", "retract"] if initial_state == 0 else ["extend", "switch", "retract"]
+                self.assertEqual([cmd for cmd, _ in actions], expected)
+                if initial_state == 0:
+                    self.assertLess(actions[1][1] - actions[0][1], 0.5)
+                self.assertLess(actions[-1][1] - actions[-2][1], 0.5)
+                self.assertEqual([h[:2] for h in server.hydraulic], [("extend", 3), ("retract", 3)])
+                self.assertEqual(server.state, 0)
+                self.assertEqual(server.switches, 2 - initial_state)
 
 
 if __name__ == "__main__":

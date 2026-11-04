@@ -1,0 +1,56 @@
+导航速度设置与底盘提速核查（2026-10-14）
+
+用户要求：默认导航请求速度设为 1.8 m/s，寻找底盘实际提速方法。
+
+已实施：
+1. operator_all_in_one.sh、bringup.sh gps 默认请求改为 1.8 m/s，倒车默认跟随。
+2. navigation_arena.launch 的 GPS 默认请求同步为 1.8 m/s。
+3. 更新 AGX_STARTUP.md、AGENT_GNSS_ONBOARDING.md 和桌面完整导航启动和关停命令.txt。
+4. 车辆停稳、FOD_COMPLETE_STOP 时，通过已有 dynamic_reconfigure 将当前 TEB 前进/倒车
+   上限由 1.6 调至 min(1.8, 底盘上报值)。独立读回确认已为 1.6328426599502563 m/s。
+   本次未重启导航、未发送运动目标/速度，未进行实车最高速度测量。
+5. 视觉回收 0.6 m/s、终点减速、避障、车体轮廓及此前加速度配置保留。
+
+实机证据：
+source devel/setup.bash 后只读 rosservice call /m2_driver/chassis_parameter 返回：
+  success: True
+  max_speed: 1.6328426599502563 m/s
+  max_steer: 0.4886922240257263 rad
+  robot_width: 0.574999988079071 m
+  robot_length: 0.6499999761581421 m
+  wheel_radius: 0.1574999988079071 m
+这里 length/width 是原底盘参数，不是新清扫车 1.6×0.8m 的规划碰撞轮廓。
+
+速度链：
+1.8 请求 -> bringup 按 VCU 上报 max_speed 限制 -> TEB 规划 -> 原有接近/视觉控制
+-> /cmd_vel -> M2 驱动再次限幅并按 target_vel / max_speed 归一化 -> VCU。
+原 1.6 到现上报上限的差约 2.05%；不是从 1.6 实测提升到 1.8。
+上报 max_speed 不是本次路测的实际最高速度；载荷、路面等还可能使实际速度更低。
+
+驱动源码已核对：
+src/autolabor_core/autolabor_canbus_driver/autolabor_canbus_driver/src/m2_driver.cpp
+  从 VCU 0x1a 查询回复读取 max_speed；ROS chassis_parameter 服务仅返回已读取参数。
+include/autolabor_canbus_driver/Autocan.h 中 0x1a 属于查询项。
+当前项目未找到经确认的写最大速度/驱动器转速限制接口。
+仅把 ROS 数值调得更高、伪造上报 max_speed 或车轮半径，不能证明底盘硬件已经提速，
+还可能破坏现有归一化指令、轮速和里程计对应关系。
+
+进一步提速的实际路径：
+优先由底盘供应商按本机序列号、电机/驱动器及 VCU 固件版本，确认是否为约 6km/h
+配置，并提供配套参数工具或正式协议，调整 VCU 最大线速度/驱动器转速限制。
+确认可设至少 1.8m/s 后，重新读取上报值；现有 1.8 默认请求即可使用提高后的额度。
+按当前上报半径换算，上报限速约等于轮速 99 rpm，1.8m/s 约需 109 rpm；这是换算，
+不是已读取到驱动器内部转速参数。可将此信息交给供应商核对减速比与允许转速。
+
+官方现售 M2 页面标称最高 10km/h（约2.78m/s），并注明以实物为准：
+https://www.autolabor.cn/pro/detail/8
+这说明存在更高速 M2 配置，不能据此直接保证这台加装清扫装置的车辆支持该速度。
+官方 M2 文档入口：https://www.autolabor.com.cn/usedoc/m2/chassis/chassis-m2
+
+若供应商确认本机已到电机/减速器硬件上限，则需要匹配的驱动总成/减速比改造；
+应同时核对新增清扫负载下的扭矩、驱动器/电源额定能力及制动能力。当前缺这些型号
+和额定资料，不能指定可直接更换的零件。维持额定供电、检查轮胎/驻车释放/机械阻力，
+有助于恢复额定速度，但不会自动提高控制器已上报的限速。
+
+没有执行固件刷写、未知 CAN 参数写入或硬件改装。
+配置读回与变更前参数保存于本次 log/three_party_setup_20261014_131501/speed_configuration_*.json。

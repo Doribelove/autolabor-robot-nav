@@ -39,8 +39,15 @@ class KeepoutNode:
     def __init__(self):
         self.lock = threading.RLock()
         self.frame = rospy.get_param('~frame_id', 'camera_init')
-        self.radius = math.hypot(rospy.get_param('~body_length', 1.6)/2,
-                                 rospy.get_param('~body_width', 0.8)/2)
+        footprint = rospy.get_param('~footprint', None)
+        if footprint:
+            # Clearance is measured about the original chassis/rotation
+            # origin, not the centre of the asymmetric cleaner rectangle.
+            self.radius = max(math.hypot(x, y) for x, y in footprint)
+        else:
+            self.radius = math.hypot(rospy.get_param('~body_length', 1.74)/2 +
+                                     rospy.get_param('~body_center_x', .35),
+                                     rospy.get_param('~body_width', .8)/2)
         self.store = Path(rospy.get_param('~storage_file', '~/.config/autolabor/gps_keepout.json')).expanduser()
         self.config = validate_config({})
         self.origin = None
@@ -128,9 +135,13 @@ class KeepoutNode:
         if self.config.get('airport') and self.config['enabled'] and self.origin:
             message = '机场地图「{}」已启用，外部及内部障碍区禁止通行；车体外沿留 {:.1f} 米，附加 {} 个禁入区'.format(
                 self.config['airport']['name'], self.config['clearance_m'], len(local))
+            if self.geometry.boundary_prebuffered:
+                message = '机场地图「{}」已含预留距离，直接使用地图边界，不再叠加车体半径或外沿余量；附加 {} 个禁入区'.format(
+                    self.config['airport']['name'], len(local))
         return {'revision': self.revision, 'frame_id': self.frame, 'origin': self.origin,
                 'enabled': self.config['enabled'] and self.origin is not None,
                 'clearance_m': self.config['clearance_m'], 'body_radius_m': self.radius,
+                'boundary_prebuffered': self.geometry.boundary_prebuffered,
                 'local_polygons': local, 'config': self.config,
                 'local_allowed': mapping(self.geometry.allowed) if self.geometry.allowed is not None else None,
                 'message': self.startup_error or message}

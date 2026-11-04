@@ -23,7 +23,9 @@ from typing import Optional, Tuple
 import rosgraph
 import rospy
 import tf2_ros
-from autolabor_fod_control.gps_recovery import depth_steering_curvature
+from autolabor_fod_control.gps_recovery import (
+    depth_point_in_world, depth_steering_curvature, point_matches_recovery_goal,
+)
 from autolabor_canbus_driver.msg import CanBusMessage, ChassisStatusInfo
 from autolabor_canbus_driver.srv import CanBusService, ChassisParameterServer
 from autolabor_fod_msgs.msg import FodDetectionArray
@@ -53,6 +55,7 @@ from autolabor_fod_control.visual_servo import (
     find_forbidden_publishers,
     horizontal_error,
     interpolate_planar_pose,
+    recovery_depth_allowed,
     renew_motion_lease_now,
     same_target_observations,
     terminal_feedback_is_fresh,
@@ -460,6 +463,7 @@ class FodVisualServoNode:
         self.horizontal_error_value = None
         self.vertical_fraction_value = None
         self.target_visible = False
+        self.recovery_reference_goal = None
         self.approach_path_m = 0.0
         self.approach_last_odom = None
         self.approach_motion_started_monotonic = None
@@ -764,7 +768,7 @@ class FodVisualServoNode:
                 "raw CAN timeout must cover at least two complete query rounds"
             )
 
-        if not 0.05 <= self.min_acquire_anchor_v_fraction < 0.70:
+        if not 0.0 <= self.min_acquire_anchor_v_fraction < 0.70:
             raise ValueError("min acquisition vertical fraction is invalid")
         if not 0.50 <= self.max_acquire_anchor_v_fraction <= 1.0:
             raise ValueError("max acquisition vertical fraction is invalid")
@@ -899,6 +903,10 @@ class FodVisualServoNode:
                 depth_m=float(item.depth_m),
                 range_m=float(item.range_m),
             )
+            if not recovery_depth_allowed(detection):
+                # A known far object is not a stereo hole: do not turn it
+                # into a pixel-only tracking observation below.
+                continue
             if detection.depth_valid and (
                 not all(math.isfinite(v) and v > 0 for v in (detection.depth_m, detection.range_m))
             ):
@@ -1603,7 +1611,11 @@ class FodVisualServoNode:
                 "measured speed %.3f m/s exceeds %.3f m/s"
                 % (odom.linear_x, self.max_measured_speed_mps)
             )
-        if odom.linear_x < -0.03:
+        # At FINAL_STOP zero is already commanded. The M2 can briefly rebound
+        # while braking (field trace: -0.056 m/s, 0.0188 m rollback). Judge that
+        # phase by the existing 0.02 m rollback bound and fresh stationary
+        # confirmation, rather than aborting on a signed velocity sample alone.
+        if self.phase != FINAL_STOP and odom.linear_x < -0.03:
             raise ControllerAbort("unexpected reverse motion %.3f m/s" % odom.linear_x)
 
         wheel_angle = snapshot["wheel_angle"]
@@ -1876,6 +1888,7 @@ class FodVisualServoNode:
             self.preferred_track_id = int(rospy.get_param("~preferred_track_id", 0))
             preferred = rospy.get_param("~preferred_target", {})
             self.preferred_target = PixelDetection(**preferred) if preferred else None
+            self.recovery_reference_goal = rospy.get_param("~recovery_reference_goal", {}) or None
             self.gps_handoff_on_approach_limit = bool(rospy.get_param("~gps_handoff_on_approach_limit", False))
             self.phase = PRECHECK
             if self.external_estop_override:
@@ -2226,6 +2239,35 @@ class FodVisualServoNode:
             )
         return frame.candidates, ""
 
+    def _filter_goal_observations(self, frame):
+        reference = self.recovery_reference_goal
+        if not reference:
+            return frame  # Standalone/indoor recovery has no GPS target.
+        allowed = []
+        with self.sensor_lock:
+            camera = self.latest_camera
+        transform = None
+        if camera is not None and any(d.depth_valid for d in frame.observations):
+            try:
+                transform = self.steering_tf_buffer.lookup_transform(
+                    reference["frame_id"], camera.frame_id,
+                    rospy.Time.from_sec(frame.stamp_sec), rospy.Duration(0.08)).transform
+            except tf2_ros.TransformException:
+                pass
+        for detection in frame.observations:
+            if not detection.depth_valid:
+                # A stereo hole may continue this already verified target;
+                # it cannot acquire a new target or change its GPS memory.
+                allowed.append(detection)
+            elif transform is not None:
+                t, q = transform.translation, transform.rotation
+                point = depth_point_in_world(detection, camera.projection,
+                                             (t.x,t.y,t.z), (q.x,q.y,q.z,q.w))
+                if point_matches_recovery_goal(point, (reference["x"], reference["y"])):
+                    allowed.append(detection)
+        return replace(frame, observations=tuple(allowed),
+                       candidates=tuple(d for d in frame.candidates if d in allowed))
+
     def _process_detection_events(self):
         frames = self._take_detection_events()
         for frame in frames:
@@ -2242,6 +2284,7 @@ class FodVisualServoNode:
                 TRACK_WAIT,
             ):
                 continue
+            frame = self._filter_goal_observations(frame)
             acquisition_reason = ""
             if self.phase == ACQUIRE:
                 candidates, acquisition_reason = self._acquisition_candidates(frame)
@@ -2483,7 +2526,7 @@ class FodVisualServoNode:
                     "post-loss measured speed %.3fm/s exceeds %.3fm/s"
                     % (state.linear_x, self.max_measured_speed_mps)
                 )
-            if state.linear_x < -0.03:
+            if self.phase != FINAL_STOP and state.linear_x < -0.03:
                 raise ControllerAbort(
                     "post-loss odometry indicates reverse motion %.3fm/s"
                     % state.linear_x

@@ -47,6 +47,84 @@ def fixture_zip(path, prj='GEOGCS["GCS_WGS_1984"]', omit=None):
 
 
 class AirportTests(unittest.TestCase):
+    def test_prebuffered_route_avoids_costmap_band_without_changing_map(self):
+        margin = math.hypot(.9, .5) + math.sqrt(2)*.05 + .01
+        g = KeepoutGeometry(allowed=AREA, boundary_prebuffered=True, route_clearance=margin)
+        legacy = KeepoutGeometry(allowed=AREA, boundary_prebuffered=True)
+        old_path = legacy.path((10., 30.), (90., 30.))
+        self.assertLess(LineString(old_path).distance(AREA.boundary), .5)
+        for start, goal in [((10.,30.),(90.,30.)), ((90.,30.),(10.,30.)),
+                            ((50.,10.),(50.,50.)), ((50.,50.),(50.,10.))]:
+            route = KeepoutGoalRoute(*goal, geometry=g)
+            x, y = start
+            segment = route.next_segment(x, y)
+            for _ in range(1000):
+                if route.should_advance(x, y):
+                    segment = route.next_segment(x, y)
+                target = (segment.x, segment.y)
+                distance = math.dist((x, y), target)
+                if distance < 1e-6:
+                    if segment.is_final:
+                        break
+                    segment = route.next_segment(x, y)
+                    continue
+                self.assertGreaterEqual(LineString([(x,y), target]).distance(AREA.boundary), margin-1e-6)
+                fraction = min(1., .25/distance)
+                x, y = x+(target[0]-x)*fraction, y+(target[1]-y)*fraction
+            else:
+                self.fail('costmap-compatible rolling route did not converge')
+            self.assertLess(math.dist((x, y), goal), .01)
+        self.assertTrue(g.allowed_costmap.equals(AREA))
+        self.assertTrue(g.clear_point((.2, 10)))
+        self.assertFalse(g.clear_point((50, 30)))
+        self.assertEqual(g.path((10.,10.),(.2,10.)), [(10.,10.),(.2,10.)])
+
+    def test_near_hole_shortcut_is_not_used_when_advancing_or_finishing(self):
+        g = KeepoutGeometry(allowed=AREA, boundary_prebuffered=True, route_clearance=1.1)
+        start, goal = (35.,19.8), (65.,19.8)
+        self.assertTrue(g.clear_line(start, goal))
+        self.assertFalse(g.clear_route_line(start, goal))
+        path = g.path(start, goal)
+        self.assertGreaterEqual(LineString(path).distance(AREA.boundary), 1.1-1e-6)
+        route = KeepoutGoalRoute(*goal, geometry=g, lookahead_distance=40., advance_distance=5.)
+        self.assertFalse(route.final_is_within_horizon(*start))
+        segment = route.next_segment(*start)
+        self.assertFalse(segment.is_final)
+        self.assertTrue(g.clear_route_line(start, (segment.x, segment.y)))
+
+    def test_prebuffered_boundary_accepts_near_edge_without_opening_holes(self):
+        legacy = KeepoutGeometry(allowed=AREA)
+        g = KeepoutGeometry(allowed=AREA, boundary_prebuffered=True)
+        self.assertFalse(legacy.clear_point((1.39, 30)))
+        self.assertTrue(g.clear_point((1.39, 30)))
+        self.assertTrue(g.allowed_costmap.equals(AREA))
+        for p in [(-.1, 30), (100.1, 30), (50, 30)]:
+            self.assertFalse(g.clear_point(p))
+        path = g.path((1.39, 30), (90, 30))
+        self.assertTrue(all(AREA.covers(LineString([a, b])) for a, b in zip(path, path[1:])))
+        self.assertFalse(g.motion_clear(.1, 10, math.pi, .6, 0))
+        self.assertFalse(g.motion_clear(39.9, 30, 0, .6, 0))
+        manual = KeepoutGeometry([[(20,20),(25,20),(25,40),(20,40)]],
+                                 allowed=AREA, boundary_prebuffered=True)
+        self.assertFalse(manual.clear_point((22, 30)))
+
+    def test_prebuffered_config_survives_reload_and_consumer_state(self):
+        airport = {'geometry': mapping(project(AREA, ORIGIN, inverse=True)),
+                   'boundary_prebuffered': True}
+        config = validate_config({'enabled': True, 'clearance_m': 0, 'airport': airport})
+        config = validate_config(json.loads(json.dumps(config)))
+        g = KeepoutGeometry.from_config(config, ORIGIN)
+        restored = KeepoutGeometry.from_state({'enabled': True, 'clearance_m': 0,
+            'local_allowed': mapping(g.allowed), 'boundary_prebuffered': g.boundary_prebuffered})
+        self.assertTrue(g.clear_point((.2, 10)))
+        self.assertTrue(restored.clear_point((.2, 10)))
+        self.assertFalse(restored.clear_point((50, 30)))
+        self.assertFalse(KeepoutGeometry.from_state({'enabled': False,
+            'local_allowed': mapping(g.allowed), 'boundary_prebuffered': True}).active)
+        airport['boundary_prebuffered'] = 'false'
+        with self.assertRaises(ValueError):
+            validate_airport(airport)
+
     def test_zip_import_subtracts_all_hazards_and_preserves_holes(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'airport.zip';fixture_zip(path)

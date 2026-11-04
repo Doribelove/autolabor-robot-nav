@@ -33,6 +33,7 @@ if(CATKIN_ENABLE_TESTING)
   add_rostest(test/livox_obstacle_scan.test)
   catkin_add_nosetests(test/test_gps_goal_speed_limiter.py)
   catkin_add_nosetests(test/test_teb_profile_tuning.py)
+  catkin_add_nosetests(test/test_sensor_installation.py)
 endif()
 
 catkin_install_python(PROGRAMS

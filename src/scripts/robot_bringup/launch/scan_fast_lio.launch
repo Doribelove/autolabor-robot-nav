@@ -14,7 +14,12 @@
   <arg name="range_max" default="12.0"/>
   <arg name="body_tf_parent" default="body"/>
   <arg name="body_tf_child" default="base_link"/>
-  <arg name="body_tf_z" default="-0.6"/>
+  <!-- body is the IMU frame, not the lidar measurement origin.
+       Keep the calibrated lidar-in-IMU offset (-.011,-.02329,.04412).
+       These inverse values put the lidar at (0,0,.65) in base_link. -->
+  <arg name="body_tf_x" default="-0.011"/>
+  <arg name="body_tf_y" default="-0.02329"/>
+  <arg name="body_tf_z" default="-0.60588"/>
 
   <node name="pointcloud_self_filter" pkg="robot_bringup" type="pointcloud_self_filter" output="screen">
     <param name="footprint_frame" value="base_link"/>
@@ -52,5 +57,6 @@
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="body_to_base_link"
-        args="0 0 $(arg body_tf_z) 0 0 0 $(arg body_tf_parent) $(arg body_tf_child) 100"/>
+        args="$(arg body_tf_x) $(arg body_tf_y) $(arg body_tf_z) 0 0 0 $(arg body_tf_parent) $(arg body_tf_child) 100"/>
+  <include file="$(dirname)/sensor_fixed_frames.launch"/>
 </launch>

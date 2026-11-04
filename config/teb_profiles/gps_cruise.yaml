@@ -1,3 +1,8 @@
+## A free diagonal Navfn plan bowed 0.65-1.04 m in the 2026-10-17 capture.
+## Use a straight global reference only when the entire padded footprint
+## corridor is FREE_SPACE; otherwise retain the original Navfn route.
+base_global_planner: autolabor_gps_keepout/NavfnROS
+
 ## Keep the GPS cruise rolling window compact to reduce costmap work.  TEB
 ## only transforms global-plan points within 85% of the costmap half-width,
 ## so 16 m provides a theoretical 6.8 m usable radius.
@@ -33,7 +38,7 @@ TebLocalPlannerROS:
   # The chassis' theoretical limit is about 1.22 m; retain steering margin so
   # normal tracking does not sit on the mechanical limit.
   min_turning_radius: 1.35
-  # Efficiency tune for 1.6 m/s operation: build longitudinal speed and
+  # Efficiency tune for cruise operation: build longitudinal speed and
   # steering curvature promptly, including through forward/reverse changes.
   # These are planning bounds, not a measurement of motor acceleration.
   acc_lim_x: 3.0

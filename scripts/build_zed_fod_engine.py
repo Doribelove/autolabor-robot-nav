@@ -26,15 +26,16 @@ def main():
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     source_hash = sha256(args.weights.read_bytes()).hexdigest()
-    # 1280x720 frame, y=180..449 ground band, scaled to width 960 and padded to
-    # a multiple of 32: exactly the existing PyTorch rectangular preprocessing.
-    name = "fod_zed_roi_224x960_fp16"
+    # Full 1280x720 frame, scaled to width 960 (height 540), then letterboxed
+    # to a multiple of 32. No image rows are removed. Use a new artifact name
+    # so the previous ground-band engine remains available for rollback.
+    name = "fod_zed_full_544x960_fp16"
     with tempfile.TemporaryDirectory(prefix="zed_engine_", dir=str(args.output_dir)) as work:
         checkpoint = Path(work) / (name + ".pt")
         shutil.copy2(args.weights, checkpoint)
         model = YOLO(str(checkpoint))
         class_names = model.names
-        engine = Path(model.export(format="engine", imgsz=(224, 960), half=True,
+        engine = Path(model.export(format="engine", imgsz=(544, 960), half=True,
                                   dynamic=False, batch=1, device=0, workspace=2,
                                   simplify=False, opset=12))
         engine_hash = sha256(engine.read_bytes()).hexdigest()
@@ -44,8 +45,8 @@ def main():
         metadata = {
             "built_at": datetime.now().astimezone().isoformat(),
             "source_weights": str(args.weights.resolve()), "source_sha256": source_hash,
-            "engine_sha256": engine_hash, "shape": [1, 3, 224, 960],
-            "source_frame": [1280, 720], "roi_rows": [180, 450],
+            "engine_sha256": engine_hash, "shape": [1, 3, 544, 960],
+            "source_frame": [1280, 720], "roi_rows": [0, 720],
             "class_names": class_names, "torch": torch.__version__,
             "ultralytics": ultralytics.__version__, "tensorrt": tensorrt.__version__,
             "gpu": torch.cuda.get_device_name(0),

@@ -2,6 +2,7 @@
 """Drive long GPS routes through bounded rolling move_base action goals."""
 
 from collections import OrderedDict
+import ast
 import copy
 import json
 import math
@@ -14,7 +15,7 @@ from move_base_msgs.msg import MoveBaseActionGoal
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Bool, String
-from std_srvs.srv import SetBool, SetBoolResponse
+from std_srvs.srv import SetBool, SetBoolResponse, Trigger, TriggerResponse
 
 from gps_module.long_range import (
     RollingGoalRoute,
@@ -97,7 +98,7 @@ class GpsLongRangeGoalManager:
             rospy.get_param("~lookahead_distance", 15.0)
         )
         self.advance_distance = float(
-            rospy.get_param("~advance_distance", 5.0)
+            rospy.get_param("~advance_distance", 8.0)
         )
         self.max_lookahead_distance = float(
             rospy.get_param("~max_lookahead_distance", 18.0)
@@ -176,6 +177,17 @@ class GpsLongRangeGoalManager:
         self.advance_requested = False
         self.owned_goal_ids = OrderedDict()
         self.keepout = None
+        footprint = rospy.get_param('/move_base/global_costmap/footprint',
+                                    [[.8, .4], [.8, -.4], [-.8, -.4], [-.8, .4]])
+        if isinstance(footprint, str):
+            footprint = ast.literal_eval(footprint)
+        padding = float(rospy.get_param('/move_base/global_costmap/footprint_padding', .1))
+        resolution = float(rospy.get_param('/move_base/global_costmap/resolution', .1))
+        # Derive waypoint clearance from the existing padded footprint and grid,
+        # without changing airport boundaries, goal acceptance or costmap limits.
+        self.keepout_route_clearance = max(
+            math.hypot(abs(x)+padding, abs(y)+padding) for x, y in footprint
+        ) + resolution*math.sqrt(2)/2 + .01
         self.keepout_sub = rospy.Subscriber(
             "/gps/keepout/state", String, self.keepout_callback, queue_size=1)
 
@@ -255,6 +267,10 @@ class GpsLongRangeGoalManager:
             SetBool,
             self.set_paused_callback,
         )
+        self.clear_route_service = rospy.Service(
+            rospy.get_param("~clear_route_service", "/gps/long_range/clear_route"),
+            Trigger, self.clear_route_callback,
+        )
         self.timer = rospy.Timer(
             rospy.Duration(1.0 / self.update_rate),
             self.timer_callback,
@@ -272,6 +288,8 @@ class GpsLongRangeGoalManager:
             self.advance_distance,
             self.max_final_goal_distance,
         )
+        rospy.loginfo("GPS keepout waypoint clearance from existing footprint/grid: %.3f m",
+                      self.keepout_route_clearance)
 
     @staticmethod
     def _optional_float_param(name):
@@ -513,7 +531,8 @@ class GpsLongRangeGoalManager:
             state = json.loads(msg.data)
             if state.get("frame_id") != self.frame_id:
                 return
-            geometry = KeepoutGeometry.from_state(state)
+            geometry = KeepoutGeometry.from_state(
+                state, route_clearance=getattr(self, 'keepout_route_clearance', 0.))
         except (ValueError, TypeError, KeyError) as exc:
             rospy.logwarn("Ignoring invalid keepout geometry: %s", exc)
             return
@@ -534,6 +553,20 @@ class GpsLongRangeGoalManager:
                 self._deactivate_route_locked("KEEPOUT_BLOCKED", str(exc))
                 if cancel is not None:
                     self.cancel_pub.publish(cancel)
+
+    def clear_route_callback(self, _request):
+        """Discard a retained route on an explicit replacement request.
+
+        Ordinary action cancellations during pause intentionally retain the
+        route. This separate request prevents resuming it before a new goal.
+        """
+        with self.lock:
+            cancel = self._cancel_message_locked() if self.route_active else None
+            self._deactivate_route_locked(
+                "CANCELED", "retained route cleared for an explicit new GPS goal")
+        if cancel is not None:
+            self.cancel_pub.publish(cancel)
+        return TriggerResponse(success=True, message="retained GPS route cleared")
 
     def set_paused_callback(self, request):
         """Pause move_base while retaining the final GPS route."""

@@ -1,0 +1,9 @@
+<launch>
+  <!-- Display only: no costmap, TF, goals, services or velocity publishers. -->
+  <arg name="map_file" default="$(find autolabor_gps_keepout)/../../../maps/imu_data_20261027/derived/gps_tracks.geojson"/>
+  <node pkg="autolabor_gps_keepout" type="gps_reference_map_node.py"
+        name="gps_reference_map" output="screen" required="false">
+    <param name="map_file" value="$(arg map_file)"/>
+    <param name="frame_id" value="camera_init"/>
+  </node>
+</launch>

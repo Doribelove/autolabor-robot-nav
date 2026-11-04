@@ -8,12 +8,14 @@ MODE_SERVICE="/fod_navigation_mode/set_fod_enabled"
 STATUS_TOPIC="/fod_navigation_mode/status"
 
 usage() {
-  echo "Usage: $0 start|stop|status|watch"
+  echo "Usage: $0 start|stop|status|watch|verification-on|verification-off"
   echo
-  echo "  start   arm recovery; start sweeping below 10m, use visual control only with FOD"
+  echo "  start   arm recovery; sweep below 10m, then reverse 1.5m and check after completion by default"
   echo "  stop    cancel pending recovery or leave visual mode and resume GPS"
   echo "  status  print one GPS/FOD mode-manager status message"
   echo "  watch   continuously display the mode-manager status"
+  echo "  verification-on   restore default reverse 1.5m + camera check (does not start motion)"
+  echo "  verification-off  explicitly disable the check; cancel an active check and remain stopped"
 }
 
 call_mode_service() {
@@ -41,6 +43,10 @@ source "$ROS_SETUP"
 source "$ROBOT_WS/devel/setup.bash"
 
 case "$1" in
+  verification-on|verification-off)
+    MODE_SERVICE="/fod_navigation_mode/set_verification_enabled"
+    if [[ "$1" == verification-on ]]; then call_mode_service true; else call_mode_service false; fi
+    ;;
   start)
     if ! rosservice info "$MODE_SERVICE" >/dev/null 2>&1; then
       echo "$MODE_SERVICE is unavailable. Start GPS bringup first." >&2

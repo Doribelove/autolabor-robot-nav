@@ -14,7 +14,7 @@
   <arg name="cmd_vel_topic" default="$(eval '/cmd_vel_navigation' if arg('goal_slowdown_enabled') else arg('output_cmd_vel_topic'))"/>
   <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
   <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
-  <arg name="max_vel_x" default="$(eval 1.6 if arg('localization_source') == 'gps' else 1.2)"/>
+  <arg name="max_vel_x" default="$(eval 1.8 if arg('localization_source') == 'gps' else 1.2)"/>
   <arg name="max_vel_x_backwards" default="$(eval arg('max_vel_x') if arg('localization_source') == 'gps' else 1.2)"/>
   <arg name="min_vel_x" default="0.0"/>
   <arg name="min_vel_x_backwards" default="0.0"/>
@@ -83,6 +83,10 @@
             param="/move_base/global_costmap/footprint"/>
   <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
             param="/move_base/local_costmap/footprint"/>
+  <!-- Physical outline + 0.10 m on each edge = 1.94 x 1.00 m.
+       Keep padding out of the physical self-filter/Qt/TEB vertices. -->
+  <param name="/move_base/global_costmap/footprint_padding" value="0.10"/>
+  <param name="/move_base/local_costmap/footprint_padding" value="0.10"/>
   <param name="/move_base/TebLocalPlannerROS/footprint_model/type" value="polygon"/>
   <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
             param="/move_base/TebLocalPlannerROS/footprint_model/vertices"/>

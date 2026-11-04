@@ -97,7 +97,7 @@ class RollingGoalRoute:
         final_x,
         final_y,
         lookahead_distance=15.0,
-        advance_distance=5.0,
+        advance_distance=8.0,
     ):
         self.final_x = _finite_number("final_x", final_x)
         self.final_y = _finite_number("final_y", final_y)
@@ -138,7 +138,7 @@ class RollingGoalRoute:
         ):
             return True
 
-        # A detour can pass the subgoal outside its 5m radius. Advance once the
+        # A detour can pass the subgoal outside its advance radius. Advance once the
         # vehicle has made the same radial progress expected on the straight
         # route, or has crossed the plane through the subgoal perpendicular to
         # the remaining route, so move_base is never asked to turn back.

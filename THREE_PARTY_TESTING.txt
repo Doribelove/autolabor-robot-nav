@@ -1,0 +1,262 @@
+三方测试采集与记录操作说明
+配置日期：2026-10-14；项目：/home/slam/robot_ws_agx
+
+本文件是操作说明，出现的示例口令不触发现场测试。正式规则见 AGENTS.md。
+采集程序只订阅和记录，不发送目标、速度、车辆使能、清扫或液压命令。
+用户负责布置 FOD、真实 GPS、仪器照度、录屏和手机拍摄；Codex 负责采集、核验和报告。
+正式模板暂缺，用户已确认先按其大纲生成可编辑 DOCX。签字盖章不虚填。
+
+一、日常口令
+
+当前用户明确发送以下完整口令时才运行 command；不是看到历史/引用就执行：
+  测试 白天 机坪 pt1
+  测试白天机坪pt6点
+  任务开始
+  回收完成
+  测试中止
+  重测 白天 机坪 pt1
+  测试进度
+  汇总报告
+
+光照：黎明、白天、黄昏、夜晚；场景：机坪、滑行道；点：pt1、pt2、pt3、pt4、pt5、pt6。
+缺少哪项只问哪项。GPS/照度待补允许录准备阶段，不能猜测或沿用历史值。
+同一普通测试重复口令返回现状；另一个测试或重测与当前任务冲突时等待用户处理。
+任务开始只记事件；回收完成记用户确认并停本次采集；缺实际完成时刻时 Ti 仍待补。
+参考耗时超限继续录完整过程，不自动停止。用户影像设备由用户操作。
+
+二、实际命令
+
+进入目录：
+  cd /home/slam/robot_ws_agx
+
+只读检查 ROS 环境/话题/类型/参数/版本/磁盘/时钟，不录包：
+  ./scripts/three_party_test.sh probe
+
+只解析示例，不录包：
+  ./scripts/three_party_test.sh parse '测试白天机坪pt6点'
+
+在当前用户明确要求后，创建并录制对应测试：
+  ./scripts/three_party_test.sh command '测试 白天 机坪 pt1'
+
+开始返回编号 session_id。默认目录：
+  log/three_party_tests/sessions/日期_光照_场景_pt点_a尝试次数_时分秒_唯一后缀/
+
+只有 result=recording、check.confirmed=true 才能说“已开始录制”。awaiting_data 表示
+进程可能还在采集，但尚未验证关键数据已写入；查看本次日志并继续检查，不重复启包。
+collector_process.json、recorder_process.json 保存 PID、开机 ID、进程开始标识和进程组。
+collector.log / recorder.log 为启动日志。进程后台独立运行，聊天结束不会结束采集。
+
+检查当前录制；结束后加 --session 指定原编号：
+  ./scripts/three_party_test.sh check
+  ./scripts/three_party_test.sh check --session '实际测试编号'
+
+记录用户报告，不能把聊天收到时间充当精确动作时间：
+  ./scripts/three_party_test.sh command '任务开始'
+  ./scripts/three_party_test.sh command '回收完成'
+  ./scripts/three_party_test.sh command '测试中止'
+
+中止时有原因应明确保存（不停止车辆）：
+  ./scripts/three_party_test.sh stop --disposition abort --reason '用户说明的实际原因'
+
+指定真实完成时刻并停包；时刻必须来自本次实测/视频/日志，不照抄示例日期：
+  ./scripts/three_party_test.sh stop --disposition complete --actual-time '实际日期T实际时分秒+08:00'
+
+停包只对身份匹配的本次 rosbag 进程组发一次 SIGINT，等待封口，不 pkill、不强杀其他任务。
+result=finalizing 时查看 check 和 collector.log，不能误报已经全部核验。
+
+补实际时刻（可保留最多 9 位小数，必须含日期和时区），也可修订已结束测试：
+  ./scripts/three_party_test.sh event --session '实际测试编号' --kind task_started --actual-time '实际日期T实际时分秒+08:00' --source '本次日志或用户实际时刻' --text '说明依据'
+  ./scripts/three_party_test.sh event --session '实际测试编号' --kind recovery_completed --actual-time '实际日期T实际时分秒+08:00' --source '用户确认，视频编号和时间对应关系'
+
+接管或其他过程事件：
+  ./scripts/three_party_test.sh event --kind takeover --source '用户现场报告' --text '实际原因'
+
+进度及报告（不会录包/发车）：
+  ./scripts/three_party_test.sh command '测试进度'
+  ./scripts/three_party_test.sh command '汇总报告'
+
+三、补充本次信息与证据
+
+将用户本次提供的信息存为 JSON，只填写有依据的字段；缺少则省略，不能填示例数据。
+info 接受的字段：
+  coordinates: {longitude: 原始经度字符串, latitude: 原始纬度字符串,
+                crs: 用户确认的坐标系, raw_input: 原始输入文本}
+  illuminance: {lux: 仪器读数, instrument: 仪器型号/编号, measured_at: 实测时间}
+  personnel: {party_a: 单位及人员, party_b: 单位及人员, party_c: 单位及人员}
+  fod: {id: 本次 FOD 编号, category: 实际种类}
+  gnss_quality: 定位质量证据来源/编号/实际时间（可用 JSON 对象）
+  point_description: 明确调整后的本次点位说明
+  recovery_success: true/false/null
+  steps_conform: true/false/null
+  notes: 本次备注
+
+经纬度可用十进制度或带 °′″ 和 E/N/W/S 的度分秒；保留原值和十进制度转换值。
+坐标分别绑定 session_id、光照、场景、点位，单位 degree。坐标系不能默认猜成 WGS84。
+照度采用 lx，不能按画面/时刻估算。
+
+  ./scripts/three_party_test.sh info --session '实际测试编号' --file '/绝对路径/本次信息.json' --source '本次用户输入或仪器记录'
+
+关联已经存在的用户影像（不启动录屏/摄像头）：
+  ./scripts/three_party_test.sh evidence --session '实际测试编号' --file '/用户提供的现有视频.mp4' --position '00:01:23.400-00:01:28.500' --source '用户手机视频，编号及实际说明'
+
+照片 position 填实际拍摄时间/对应事件，不能空缺；可加 --actual-time 指明已验证的时间。
+记录绝对路径、编号、文件大小、修改时间、SHA256 及来源，不移动或覆盖用户原件。
+需要报告截图时，只从用户已经提供的文件提取并另存、关联证据。
+
+目标经服务/客户端等非话题接口下发时，将接口名、完整请求体、实际时间/来源和日志路径
+存成 JSON，再记入本次事件，命令只记录，不执行请求：
+  ./scripts/three_party_test.sh request --session '实际测试编号' --file '/绝对路径/本次请求.json' --source '实际客户端请求日志'
+
+重测必须保留原记录；默认首次尝试参与分组，采用重测需明确编号和原因：
+  ./scripts/three_party_test.sh command '重测 白天 机坪 pt1'
+  ./scripts/three_party_test.sh adopt --session '实际重测编号' --reason '用户确认的采用原因' --source '本次采用说明'
+
+四、实际事件及时间依据
+
+recording_started_at：已在 bag 中读到的第一条消息时刻，通过本次系统/ROS 映射保存。
+task_started_at：订阅 /fod_navigation_mode/status 后新发生的 recovery_armed false→true；
+  或室内直接模式 GPS_ACTIVE→ENTERING_FOD。对应 Qt 模块实际启用，包括等待接近阶段。
+  首次锁存消息只是基线，不能当新启动。状态无动作源时间戳，所以明确记录接收时刻、
+  上次观测界限及精度限制。若已运行才开始录制，启动事件待补。
+software_completed_at：新发生的 FOD_COMPLETE_STOP，仅表示软件行程完成/停车。
+  /fod_visual_servo/completed、导航 COMPLETE 均不能证明 FOD 实际入仓。
+recovery_completed_at：用户确认的实际完成时刻或可对应时间的影像/日志证据。
+  聊天“回收完成”只有人工报告时刻；没有实际时刻就保持待补，不用报告时刻替代。
+recording_stopped_at：本次录包进程退出后的观测时刻。
+clock_pairs.jsonl：每秒系统纳秒、ROS 纳秒、单调时钟映射；时间跳变需复核。
+events.jsonl：追加式事件和来源，时间修订保留旧值。跨午夜按完整日期计算。
+
+五、话题、带宽、缺失及文件
+
+基于本机已运行 ROS Noetic 和项目程序生成 config/three_party_capture.json。
+首次探测 59 个白名单话题，57 个有发布者；每次启动重新发现，实际条数看 bag 检查。
+关键链：/fod_navigation_mode/status、/fod/detections、/gps/fix、/odom、/cmd_vel、/scan。
+覆盖目标/任务、双天线/GPS、TF/里程计、命令/实际轮速、路径/规划、视觉/清扫/液压、
+底盘告警、Livox IMU/点云/scan、压缩图像/相机参数。完整名称和类型附在文件末尾。
+复用 record_rosbag.sh custom；LZ4、512 MB buffer、2 GB 分卷，不录未压缩全帧 RGB/深度。
+
+当前已知缺失：
+  /m2_driver/emergency_stop、/m2_driver/brake_set 没有发布者。
+  /gps/fix 只区分有无定位，未提供位置 RTK 固定/浮点、HDOP、卫星数、接收机 UTC。
+  /rosout 可保存双天线解类型及基线，但不替代位置 RTK 质量；不争用 GNSS 串口。
+  Qt 模式服务原始请求无法仅靠 bag 获得；成功状态转换可见，必要请求另存。
+
+每次目录保留 bags 全部分卷、logs、session.json、events.jsonl、clock_pairs.jsonl、
+capture_config.json、parameters.json、message_definitions.json、topics.txt、源码校验、
+source_logs.json、启动检查 startup_check.json、最终检查 check.json、文件清单 files.json。
+文件清单是核验时的快照；后续补元数据/证据会重新核验并更新，原事件不删除。
+检查全部 bag 可读、关键话题有数据、关键话题及全包时间覆盖正式任务；损坏/缺失即待补。
+日志从本次开始的偏移处追加采集，记录原日志位置，不把旧日志内容当本次事件。
+
+六、计算和报告
+
+机坪 S=18743.63㎡：pt1 左上角、pt2 右下角，pt3～pt6 位置说明待补。
+滑行道 S=22881.75㎡：pt1 中端、pt2 远端，pt3～pt6 位置说明待补。
+2026-10-14 用户更正为 pt1～pt6；四光照×两场景×六点，共 48 次。
+旧 pt0（机坪中心/滑行道近端）保留原编号和坐标，列在全部尝试明细中，
+不自动改成 pt1，不参与当前六点分组；旧报告与原始记录不覆盖。
+Ti=实际回收完成时刻－模块实际启动时刻；ηi=S/Ti，单位㎡/s。
+六点 η 算术平均（ηpt1＋ηpt2＋ηpt3＋ηpt4＋ηpt5＋ηpt6）/6≥50；四光照组再取算术平均≥50，且每种光照单独判定。
+滑行道457.635秒、机坪374.8726秒是单次参考，不替代分组标准，不作为录制时限。
+计算保留未舍入有理数；缺失不填零。失败/未采用记录始终列在明细。
+效率、实物回收、步骤符合、证据完整分别列示。历史调试包不因点号相同而自动计入 48 次；任一点数据缺失则分组结果待补。
+
+每次结束或补信息后更新报告；reports/时间_唯一后缀/ 内有：
+  三方测试报告.docx（可编辑）、测试明细.csv、分组结果.csv、测试进度.csv、
+  证据索引.csv、results.json。
+latest_report.json 指向最新版本；旧报告不覆盖。当前未开始正式 48 次测试。
+
+七、避障另行采集
+
+2026-10-17：已读取 /home/slam/Downloads/三方测试报告.docx 的避障用例。
+新增快捷口令“避障测试”（可带光照/场景），未知信息先标待补开始准备阶段；
+“避障测试结束”仅结束本次采集，不自动填成功。专用配置 config/obstacle_capture.json。
+完整现场步骤、原文要求、图片清单及命令见 OBSTACLE_TESTING.txt。
+不启动车辆，不修改原报告、导航控制和既有回收点位安排。
+
+四种光照各至少一次，每次更换障碍物及位置；不能用回收试验替代。
+  ./scripts/three_party_test.sh obstacle-start --light 白天 --scene 机坪
+
+单次 JSON 仍需坐标、照度、三方人员、影像和步骤；obstacle 字段包含：
+  object_id、length_m、width_m、height_m、bypassed、continued。
+尺寸最低 0.2×0.2×0.5m，数值单位米；实际换物和换位置分别核验。
+用 event --kind task_started 记录实际开始时间；遇障事件：
+  ./scripts/three_party_test.sh event --kind obstacle_encounter --actual-time '实际日期T实际时分秒+08:00' --source '本次视频时间依据'
+以同样 stop --disposition complete --actual-time 流程结束避障采集；该类记录不计回收效率。
+核验自动读取遇障前 2 秒 /odom 实际车速，保存样本数/均值/最大值，不能用 cmd_vel 代替。
+不同光照、换障碍物/位置、尺寸、照度、真实车速、绕过且继续行驶或影像缺任一项均待补。
+
+八、配置验证
+
+离线验证：source devel/setup.bash 后运行 python3 scripts/test_three_party_test.py。
+隔离 ROS 生命周期验证：python3 scripts/test_three_party_capture_ros.py /独立模拟输出目录。
+后者自建随机端口 master，拒绝使用 11311；数据标记 SIMULATION_ONLY，不并入正式测试。
+已验证实际写包、重复/冲突口令、旧锁存状态、启动观测、软件完成不等同入仓、重测保留、
+独立停止、完整读取/损坏检测、分卷统计、坐标/命名/跨午夜/临界值/算术均值。
+
+附：2026-10-14 探测后的白名单（录到与否以每次 check.json 为准）
+/fod/detections | autolabor_fod_msgs/FodDetectionArray | 关键 | 有发布者
+/fod_camera/image_raw/compressed | sensor_msgs/CompressedImage | 辅助 | 有发布者
+/fod_camera/camera_info | sensor_msgs/CameraInfo | 辅助 | 有发布者
+/fod_navigation_mode/state | std_msgs/String | 辅助 | 有发布者
+/fod_navigation_mode/status | std_msgs/String | 关键 | 有发布者
+/fod_visual_servo/state | std_msgs/String | 辅助 | 有发布者
+/fod_visual_servo/status | std_msgs/String | 辅助 | 有发布者
+/fod_visual_servo/completed | std_msgs/Bool | 辅助 | 有发布者
+/gps/fix | sensor_msgs/NavSatFix | 关键 | 有发布者
+/gps/heading | std_msgs/Float64 | 辅助 | 有发布者
+/gps/odom | nav_msgs/Odometry | 辅助 | 有发布者
+/gps/goal_fix | sensor_msgs/NavSatFix | 辅助 | 有发布者
+/gps/long_range/final_goal | geometry_msgs/PoseStamped | 辅助 | 有发布者
+/gps/long_range/subgoal | geometry_msgs/PoseStamped | 辅助 | 有发布者
+/gps/long_range/status | std_msgs/String | 辅助 | 有发布者
+/gps/long_range/active | std_msgs/Bool | 辅助 | 有发布者
+/gps/targets/selection | std_msgs/String | 辅助 | 有发布者
+/odom | nav_msgs/Odometry | 关键 | 有发布者
+/cmd_vel_navigation | geometry_msgs/Twist | 辅助 | 有发布者
+/cmd_vel_gps | geometry_msgs/Twist | 辅助 | 有发布者
+/cmd_vel_fod | geometry_msgs/Twist | 辅助 | 有发布者
+/cmd_vel | geometry_msgs/Twist | 关键 | 有发布者
+/m2_driver/chassis_info | autolabor_canbus_driver/ChassisStatusInfo | 辅助 | 有发布者
+/m2_driver/chassis_monitor | autolabor_canbus_driver/ChassisMonitorInfo | 辅助 | 有发布者
+/m2_driver/wheel_angle | std_msgs/Float64 | 辅助 | 有发布者
+/m2_driver/control_timeout | std_msgs/Bool | 辅助 | 有发布者
+/m2_driver/emergency_stop | 未发布/类型待确认 | 辅助 | 无发布者
+/m2_driver/brake_set | 未发布/类型待确认 | 辅助 | 无发布者
+/m2_driver/left_wheel_vel | std_msgs/Float64 | 辅助 | 有发布者
+/m2_driver/right_wheel_vel | std_msgs/Float64 | 辅助 | 有发布者
+/canbus_msg | autolabor_canbus_driver/CanBusMessage | 辅助 | 有发布者
+/move_base_simple/goal | geometry_msgs/PoseStamped | 辅助 | 有发布者
+/move_base/goal | move_base_msgs/MoveBaseActionGoal | 辅助 | 有发布者
+/move_base/cancel | actionlib_msgs/GoalID | 辅助 | 有发布者
+/move_base/status | actionlib_msgs/GoalStatusArray | 辅助 | 有发布者
+/move_base/feedback | move_base_msgs/MoveBaseActionFeedback | 辅助 | 有发布者
+/move_base/result | move_base_msgs/MoveBaseActionResult | 辅助 | 有发布者
+/move_base/TebLocalPlannerROS/global_plan | nav_msgs/Path | 辅助 | 有发布者
+/move_base/TebLocalPlannerROS/local_plan | nav_msgs/Path | 辅助 | 有发布者
+/scan | sensor_msgs/LaserScan | 关键 | 有发布者
+/tf | tf2_msgs/TFMessage | 辅助 | 有发布者
+/tf_static | tf2_msgs/TFMessage | 辅助 | 有发布者
+/rosout | rosgraph_msgs/Log | 辅助 | 有发布者
+/diagnostics | diagnostic_msgs/DiagnosticArray | 辅助 | 有发布者
+/rabbitmq_bridge/status | autolabor_operator_msgs/RabbitMqStatus | 辅助 | 有发布者
+/livox/lidar | livox_ros_driver2/CustomMsg | 辅助 | 有发布者
+/livox/imu | sensor_msgs/Imu | 辅助 | 有发布者
+/cloud_livox_body | sensor_msgs/PointCloud2 | 辅助 | 有发布者
+/cloud_filtered_for_scan | sensor_msgs/PointCloud2 | 辅助 | 有发布者
+/move_base/local_costmap/costmap | nav_msgs/OccupancyGrid | 辅助 | 有发布者
+/move_base/local_costmap/costmap_updates | map_msgs/OccupancyGridUpdate | 辅助 | 有发布者
+/move_base/global_costmap/costmap | nav_msgs/OccupancyGrid | 辅助 | 有发布者
+/move_base/global_costmap/costmap_updates | map_msgs/OccupancyGridUpdate | 辅助 | 有发布者
+/gps/targets/state | std_msgs/String | 辅助 | 有发布者
+/rabbitmq_bridge/latest_target | autolabor_operator_msgs/RemoteTarget | 辅助 | 有发布者
+/gps/keepout/state | std_msgs/String | 辅助 | 有发布者
+/move_base/current_goal | geometry_msgs/PoseStamped | 辅助 | 有发布者
+/move_base/recovery_status | move_base_msgs/RecoveryStatus | 辅助 | 有发布者
+/gps/static_error/summary | std_msgs/String | 辅助 | 有发布者
+
+2026-10-17 增补：垃圾回收判定演示
+明确发送“垃圾回收判定开始”才新建 kind=verification 录包；不计入 48 点效率测试。
+专用配置继承白名单，原始相机压缩画面、CameraInfo、检测和判定状态必须有数据。
+控制端默认关闭，在 Qt 相机页勾选倒退 1.5 米复查后启动原回收。
+判定结果与用户实物成功分开；详见 RECOVERY_VERIFICATION.txt。

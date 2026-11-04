@@ -23,10 +23,12 @@ public:
     const std::string odom = private_nh_.param<std::string>("odom_topic", "/gps/odom");
     private_nh_.param<std::string>("body_frame", body_frame_, "body");
     // Same fixed MID360 lidar-to-IMU extrinsics as FAST_LIO/config/mid360.yaml.
-    // Lidar and body axes are aligned; base_link is 0.6 m below body.
+    // Lidar and body axes are aligned. The body/base mount is set by launch.
     private_nh_.param("lidar_to_body_x", mount_x_, -0.011);
     private_nh_.param("lidar_to_body_y", mount_y_, -0.02329);
     private_nh_.param("lidar_to_body_z", mount_z_, 0.04412);
+    private_nh_.param("body_in_base_x", body_in_base_x_, 0.0);
+    private_nh_.param("body_in_base_y", body_in_base_y_, 0.0);
     publisher_ = nh_.advertise<sensor_msgs::PointCloud2>(output, 2);
     odom_subscriber_ = nh_.subscribe(odom, 5, &LivoxObstacleCloud::odomCallback, this);
     cloud_subscriber_ = nh_.subscribe(input, 2, &LivoxObstacleCloud::cloudCallback, this);
@@ -38,7 +40,9 @@ private:
   void odomCallback(const nav_msgs::OdometryConstPtr& msg)
   {
     // Twist is expressed in child_frame_id. The configured mount has no yaw
-    // offset between base_link and body; translation in z does not affect it.
+    // offset between base_link and body. Transfer chassis twist to the IMU
+    // origin so the newly accounted horizontal lever arm does not introduce
+    // a turning error in single-frame deskewing.
     if (msg->child_frame_id != "base_link" && msg->child_frame_id != body_frame_)
       return;
     const auto& twist = msg->twist.twist;
@@ -49,6 +53,11 @@ private:
     vx_ = twist.linear.x;
     vy_ = twist.linear.y;
     yaw_rate_ = twist.angular.z;
+    if (msg->child_frame_id == "base_link")
+    {
+      vx_ -= yaw_rate_ * body_in_base_y_;
+      vy_ += yaw_rate_ * body_in_base_x_;
+    }
   }
 
   void cloudCallback(const livox_ros_driver2::CustomMsgConstPtr& msg)
@@ -124,6 +133,7 @@ private:
   ros::Time odom_stamp_;
   std::string body_frame_;
   double mount_x_, mount_y_, mount_z_;
+  double body_in_base_x_, body_in_base_y_;
   double vx_ = 0.0, vy_ = 0.0, yaw_rate_ = 0.0;
 };
 

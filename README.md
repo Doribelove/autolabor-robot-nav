@@ -432,7 +432,7 @@ FAST_LIO 模式：/gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal ->
 
 - host：`39.98.47.163`
 - port：`5672`
-- user/password：`caacsriUser`
+- user/password：使用本机 `config/platform_credentials.local.json`（不上传 Git）；格式参照 `config/platform_credentials.example.json`，也可设置 `RABBITMQ_USER` / `RABBITMQ_PWD`。
 - vhost：`/`
 - queue：`collection_vehicle`
 - ROS 发布话题：`/gps/goal_fix`

@@ -1,6 +1,7 @@
 <launch>
-  <arg name="fod_offset_y" default="1.0"/>
+  <arg name="fod_offset_y" default="0.2"/>
   <arg name="case" default="visible_then_lost"/>
+  <arg name="verification_case" default="pass"/>
   <arg name="sweep_port" default="50214"/>
   <arg name="results_file" default="/tmp/gps_loss_recovery_result.json"/>
   <arg name="max_approach_distance_m" default="6.0"/>
@@ -43,6 +44,7 @@
   <test test-name="gps_loss_recovery" pkg="autolabor_fod_control"
         type="test_gps_loss_recovery_ros.py" name="fake_world" time-limit="100">
     <param name="case" value="$(arg case)"/>
+    <param name="verification_case" value="$(arg verification_case)"/>
     <param name="fod_offset_y" value="$(arg fod_offset_y)"/>
     <param name="sweep_port" value="$(arg sweep_port)"/>
     <param name="results_file" value="$(arg results_file)"/>

@@ -9,7 +9,8 @@ from shapely.prepared import prep
 from shapely.validation import explain_validity
 
 EARTH_RADIUS = 6378137.0
-BODY_RADIUS = math.hypot(0.8, 0.4)
+# Farthest physical corner from the ORIGINAL chassis centre (front cleaner).
+BODY_RADIUS = math.hypot(1.22, 0.4)
 
 
 def gps_to_xy(lat, lon, origin):
@@ -82,30 +83,44 @@ def rings(geometry):
 
 
 class KeepoutGeometry:
-    def __init__(self, polygons=(), clearance=1.0, body_radius=BODY_RADIUS, allowed=None):
+    def __init__(self, polygons=(), clearance=1.0, body_radius=BODY_RADIUS, allowed=None,
+                 boundary_prebuffered=False, route_clearance=0.0):
         self.raw = unary_union([Polygon(p) for p in polygons])
         self.clearance = float(clearance)
         self.body_radius = float(body_radius)
         self.allowed = allowed
+        self.boundary_prebuffered = bool(boundary_prebuffered and allowed is not None)
+        # A prebuffered map stays unchanged. GPS routing must nevertheless put
+        # intermediate targets outside the existing costmap's footprint band.
+        # Other consumers (including visual motion checks) keep their semantics.
+        self.route_clearance = max(0., float(route_clearance)) if self.boundary_prebuffered else 0.
         self.active = not self.raw.is_empty or allowed is not None
         # Half a diagonal cell at the 0.1 m navigation resolution, rounded up.
         self.obstacles = self.raw.buffer(clearance+0.08, join_style=2) if self.active else self.raw
         self.forbidden = self.raw.buffer(clearance+body_radius+0.10, join_style=2) if self.active else self.raw
         self.prepared = prep(self.forbidden)
-        self.allowed_costmap = allowed.buffer(-clearance-0.08, join_style=2) if allowed is not None else None
-        self.free = (allowed.buffer(-clearance-body_radius-0.10, join_style=2)
-                     .difference(self.forbidden)) if allowed is not None else None
+        # A supplied boundary can already include the vehicle/margin allowance.
+        # Use that boundary for both routing and costmaps without eroding it twice.
+        # Separate manually added keepouts retain their configured treatment.
+        self.allowed_costmap = (allowed if self.boundary_prebuffered else
+                                allowed.buffer(-clearance-0.08, join_style=2)) if allowed is not None else None
+        allowed_centres = (allowed if self.boundary_prebuffered else
+                           allowed.buffer(-clearance-body_radius-0.10, join_style=2)) if allowed is not None else None
+        self.free = allowed_centres.difference(self.forbidden) if allowed_centres is not None else None
         self.free_prepared = prep(self.free) if self.free is not None else None
+        self._route_boundary = self.free.boundary if self.free is not None else None
         self._airport_graphs = {}
         self._last_path = None
         self.vertices = None
         self.edges = None
 
     @classmethod
-    def from_state(cls, state):
+    def from_state(cls, state, route_clearance=0.0):
         return cls(state.get('local_polygons', []) if state.get('enabled') else [],
                    state.get('clearance_m', 1.0), state.get('body_radius_m', BODY_RADIUS),
-                   shape(state['local_allowed']) if state.get('enabled') and state.get('local_allowed') else None)
+                   shape(state['local_allowed']) if state.get('enabled') and state.get('local_allowed') else None,
+                   boundary_prebuffered=state.get('boundary_prebuffered', False),
+                   route_clearance=route_clearance)
 
     @classmethod
     def from_config(cls, config, origin, body_radius=BODY_RADIUS, for_export=False):
@@ -116,7 +131,8 @@ class KeepoutGeometry:
         if config.get('airport'):
             from .airport import project
             allowed = project(shape(config['airport']['geometry']), origin)
-        return cls(polygons, config['clearance_m'], body_radius, allowed)
+        return cls(polygons, config['clearance_m'], body_radius, allowed,
+                   boundary_prebuffered=config.get('airport', {}).get('boundary_prebuffered', False))
 
     def clear_point(self, point):
         if self.free_prepared is not None:
@@ -130,17 +146,33 @@ class KeepoutGeometry:
             return self.free_prepared.covers(LineString([a, b]))
         return not self.active or not self.prepared.intersects(LineString([a, b]))
 
+    def clear_route_line(self, a, b):
+        if not self.clear_line(a, b):
+            return False
+        if not self.route_clearance or self.free is None:
+            return True
+        boundary = self._route_boundary
+        # Preserve accepted near-edge endpoints; do not invent a new target
+        # rejection zone. Between interior points, keep the whole segment clear,
+        # including shortcuts chosen when advancing the rolling horizon.
+        required = min(self.route_clearance, boundary.distance(Point(a)),
+                       boundary.distance(Point(b)))
+        line = Point(a) if a == b else LineString([a, b])
+        return line.distance(boundary) + 1e-7 >= required
+
     def _airport_path(self, start, goal):
         # Most 10 Hz rolling-goal updates can reuse the remaining exact-checked
         # path. No grid discretization or straight shortcut through green holes.
         if self._last_path and self._last_path[-1] == goal:
             for index in range(len(self._last_path)-1, 0, -1):
-                if self.clear_line(start, self._last_path[index]):
+                if self.clear_route_line(start, self._last_path[index]):
                     return [start]+self._last_path[index:]
         component = None
         for index, part in enumerate(polygon_parts(self.free)):
             if part.covers(Point(start)):
                 if not part.covers(Point(goal)):
+                    if self.boundary_prebuffered:
+                        raise ValueError('起点与目标不在同一块地图可通行区域')
                     raise ValueError('起点与目标之间的通道不足以容纳车体和预留距离')
                 component = (index, part)
                 break
@@ -150,7 +182,7 @@ class KeepoutGeometry:
         if index not in self._airport_graphs:
             # Simplify candidate corners only, never the actual collision
             # boundary. Every graph edge is checked against full geometry.
-            outline = part.buffer(-0.12, join_style=2).simplify(.10, preserve_topology=True)
+            outline = part.buffer(-self.route_clearance-0.12, join_style=2).simplify(.10, preserve_topology=True)
             vertices = []
             for polygon in polygon_parts(outline):
                 for ring in [polygon.exterior]+list(polygon.interiors):
@@ -173,13 +205,13 @@ class KeepoutGeometry:
                 return self._last_path
             if current == source:
                 neighbours = [(j, math.dist(start, p)) for j, p in enumerate(vertices)
-                              if self.clear_line(start, p)]
+                              if self.clear_route_line(start, p)]
             else:
                 if current not in cached:
                     cached[current] = [(j, math.dist(nodes[current], p)) for j, p in enumerate(vertices)
-                                       if j != current and self.clear_line(nodes[current], p)]
+                                       if j != current and self.clear_route_line(nodes[current], p)]
                 neighbours = list(cached[current])
-            if self.clear_line(nodes[current], goal):
+            if self.clear_route_line(nodes[current], goal):
                 neighbours.append((target, math.dist(nodes[current], goal)))
             for neighbour, length in neighbours:
                 cost = distance+length
@@ -207,10 +239,14 @@ class KeepoutGeometry:
     def path(self, start, goal):
         start, goal = tuple(start), tuple(goal)
         if not self.clear_point(goal):
+            if self.boundary_prebuffered:
+                raise ValueError('GPS 目标在地图通行范围外或禁入区内（地图已含预留距离）')
             raise ValueError('GPS 目标在通行范围外、禁入区或车体外沿 {:.1f} 米预留范围内'.format(self.clearance))
         if not self.clear_point(start):
+            if self.boundary_prebuffered:
+                raise ValueError('车辆当前位置不在地图可通行范围内或位于禁入区')
             raise ValueError('车辆当前位置不满足通行范围及车体预留距离，请检查地图边界')
-        if self.clear_line(start, goal):
+        if self.clear_route_line(start, goal):
             return [start, goal]
         if self.allowed is not None:
             return self._airport_path(start, goal)
